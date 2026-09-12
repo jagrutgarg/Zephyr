@@ -17,7 +17,7 @@
   --input-focus: #818cf8;
   --success: #10b981;
   --error: #f43f5e;
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: sans-serif;
 }
 
 * {
