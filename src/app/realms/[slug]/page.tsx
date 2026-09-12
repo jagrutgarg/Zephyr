@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Check, Trash2, Edit2, Calendar, CalendarPlus } from "lucide-react";
-import ParticleBackground from "@/components/ParticleBackground";
+import { RealmBackground } from "@/components/RealmBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
@@ -276,15 +276,22 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const activeQuests = quests.filter(q => !q.is_completed);
   const completedQuests = quests.filter(q => q.is_completed);
 
+  const accent = realm?.accent_color || '#8b5cf6';
+
   return (
     <div className="relative min-h-screen pb-20" style={{ background: '#020617', color: 'white', overflowX: 'hidden' }}>
-      <ParticleBackground />
-      
-      <div className="relative z-10 max-w-4xl mx-auto pt-10 px-6">
+      {realm && <RealmBackground slug={slug} accentColor={accent} />}
+
+      <div className="relative z-10 max-w-4xl mx-auto pt-14 px-6 pb-10">
          {/* Internal Header */}
-         <button onClick={() => router.push('/dashboard')} className="mb-6 text-sm flex items-center gap-2" style={{color: realm?.accent_color}}>
-           ← Back to World Map
-         </button>
+         <motion.button
+            onClick={() => router.push('/dashboard')}
+            whileHover={{ x: -3 }}
+            className="mb-8 text-sm flex items-center gap-2"
+            style={{ color: accent, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+         >
+           <span style={{ textDecoration: 'underline', textDecorationColor: `${accent}60`, textUnderlineOffset: '4px' }}>← Back to World Map</span>
+         </motion.button>
 
          {crossRealmNotice && (
              <div style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '12px', padding: '0.8rem 1.2rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
@@ -302,27 +309,58 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
              </div>
          )}
 
-         <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{realm?.name}</h1>
-              <p className="text-slate-400">Guarded by {realm?.guardian}</p>
+         <div className="flex justify-between items-center mb-10" style={{ flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                    width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0,
+                    background: `radial-gradient(circle, ${accent}30 0%, rgba(15,23,42,0.9) 75%)`,
+                    border: `2px solid ${accent}`, boxShadow: `0 0 20px ${accent}60`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.4rem', fontWeight: 'bold', color: accent,
+                }}>
+                    {realm?.guardian?.[0] || '?'}
+                </div>
+                <div>
+                  <h1 style={{ fontSize: '2.4rem', fontWeight: 'bold', marginBottom: '0.25rem', color: 'white', textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)` }}>{realm?.name}</h1>
+                  <p className="text-slate-400">Guarded by {realm?.guardian}</p>
+                </div>
             </div>
-            
+
             <div className="flex items-center gap-6">
-                <div className="hidden sm:block"><ThematicClock /></div>
-                <button onClick={() => openModal()} className="btn-primary" style={{ background: realm?.accent_color, boxShadow: `0 4px 15px ${realm?.accent_color}40`, border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}>
-                   <Plus size={18} /> New Quest
-                </button>
+                <div className="hidden sm:block"><ThematicClock accentColor={accent} /></div>
+                <motion.button
+                    onClick={() => openModal()}
+                    whileHover={{ scale: 1.04, boxShadow: `0 6px 28px ${accent}70` }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ background: accent, boxShadow: `0 4px 18px ${accent}50`, border: 'none', padding: '0.8rem 1.5rem', borderRadius: '999px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}
+                >
+                   <motion.span whileHover={{ rotate: 90 }} style={{ display: 'inline-flex' }}><Plus size={18} /></motion.span> New Quest
+                </motion.button>
             </div>
          </div>
 
          {/* Quest List */}
          <div className="space-y-4">
-             <h2 className="text-xl font-semibold mb-4" style={{color: realm?.accent_color}}>Active Quests</h2>
+             <div style={{ marginBottom: '1.25rem' }}>
+                 <h2 className="text-xl font-semibold" style={{color: 'white', marginBottom: '0.4rem'}}>Active Quests</h2>
+                 <div style={{ width: '64px', height: '3px', borderRadius: '2px', background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+             </div>
              <AnimatePresence>
                  {activeQuests.length === 0 && (
-                     <motion.div initial={{opacity: 0}} animate={{opacity: 1}} className="p-6 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)' }}>
-                         {realm?.name} awaits your first quest. Plant a seed of intention.
+                     <motion.div
+                        initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}}
+                        className="p-8 rounded-2xl text-center"
+                        style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(10px)', border: `1px solid ${accent}35`, boxShadow: `0 0 30px ${accent}15` }}
+                     >
+                         <motion.div
+                            animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.15, 1] }}
+                            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}
+                         >
+                            ✦
+                         </motion.div>
+                         <p style={{ fontSize: '1.05rem', color: '#cbd5e1' }}>{realm?.name} awaits your first quest.</p>
+                         <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.3rem' }}>Plant a seed of intention.</p>
                      </motion.div>
                  )}
                  {activeQuests.map(q => (

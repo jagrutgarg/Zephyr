@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-export default function ParticleBackground() {
+export default function ParticleBackground({ color = "#ffffff" }: { color?: string }) {
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; delay: number; duration: number }[]>([]);
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     // Generate static initial positions to avoid hydration mismatch
@@ -22,23 +24,25 @@ export default function ParticleBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
       {/* Background Starfield Layer */}
-      <div 
-        className="absolute inset-0 opacity-40 bg-[url('/stars.png')]" 
+      <div
+        className="absolute inset-0 opacity-40 bg-[url('/stars.png')]"
         style={{ position: 'absolute', inset: 0, opacity: 0.4, backgroundImage: 'radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 50px 160px, #ffffff, rgba(0,0,0,0)), radial-gradient(1.5px 1.5px at 90px 40px, #ffffff, rgba(0,0,0,0))', backgroundRepeat: 'repeat', backgroundSize: '200px 200px' }}
       />
       {/* Floating Motes */}
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-white opacity-40"
+          className="absolute rounded-full"
           style={{
             left: `${p.x}%`,
             top: `${p.y}%`,
             width: `${p.size}px`,
             height: `${p.size}px`,
-            boxShadow: `0 0 ${p.size * 2}px rgba(255,255,255,0.8)`,
+            background: color,
+            opacity: 0.4,
+            boxShadow: `0 0 ${p.size * 2}px ${color}cc`,
           }}
-          animate={{
+          animate={reducedMotion ? undefined : {
             y: [`${p.y}%`, `${p.y - 15}%`, `${p.y}%`],
             x: [`${p.x}%`, `${p.x + (Math.random() > 0.5 ? 5 : -5)}%`, `${p.x}%`],
             opacity: [0.1, 0.6, 0.1],

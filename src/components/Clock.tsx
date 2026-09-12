@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Hourglass } from "lucide-react";
 
-export function ThematicClock() {
+export function ThematicClock({ accentColor = "#a855f7" }: { accentColor?: string }) {
   const [timeStr, setTimeStr] = useState("");
   const [dateStr, setDateStr] = useState("");
 
@@ -32,21 +32,21 @@ export function ThematicClock() {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '0.5rem',
-      background: 'rgba(15,23,42,0.8)',
-      padding: '0.4rem 1rem',
-      borderRadius: '1rem',
+      gap: '0.6rem',
+      background: 'rgba(15,23,42,0.75)',
+      padding: '0.5rem 1.1rem',
+      borderRadius: '0.9rem',
       backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(168, 85, 247, 0.3)',
+      border: `1px solid ${accentColor}50`,
       color: '#e2e8f0',
       fontFamily: 'monospace',
       fontSize: '0.9rem',
-      boxShadow: '0 0 10px rgba(168, 85, 247, 0.15)'
+      boxShadow: `0 0 14px ${accentColor}30, inset 0 0 12px rgba(0,0,0,0.3)`
     }}>
-      <Hourglass size={14} color="#a855f7" className="animate-pulse" />
-      <span>{timeStr}</span>
-      <span style={{ color: '#64748b' }}>·</span>
-      <span>{dateStr}</span>
+      <Hourglass size={14} color={accentColor} className="animate-pulse" />
+      <span style={{ fontWeight: 'bold' }}>{timeStr}</span>
+      <span style={{ color: accentColor, opacity: 0.6 }}>◆</span>
+      <span style={{ color: '#94a3b8' }}>{dateStr}</span>
     </div>
   );
 }
