@@ -11,10 +11,11 @@ import { LogOut, Plus } from "lucide-react";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { REALMS } from "@/lib/realms";
-import { Swords } from "lucide-react";
+import { Swords, ListChecks } from "lucide-react";
 import { DashboardMapBackground } from "@/components/three/DashboardMapBackground";
 import { Canvas3DErrorBoundary } from "@/components/three/Canvas3DErrorBoundary";
 import { useWebGLSupport } from "@/hooks/useWebGLSupport";
+import { AetheriaRestoredOverlay } from "@/components/AetheriaRestoredOverlay";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [realmIdToSlug, setRealmIdToSlug] = useState<Record<string, string>>({});
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [focusNotice, setFocusNotice] = useState<{ type: "active" | "completed"; realmSlug: string; realmName: string; questTitle: string } | null>(null);
+  const [showRestored, setShowRestored] = useState(false);
 
   // Zustand Score Hook
   const { stats, realmProgress, setStats, setRealmProgress } = useGameStore();
@@ -110,6 +112,23 @@ export default function DashboardPage() {
     loadData();
   }, [router, supabase, setStats, setRealmProgress]);
 
+  // "Aetheria Restored" milestone: all 8 Realms at level 10+, Void at 0%.
+  // Shown once per browser via localStorage — reaching it again doesn't renag.
+  useEffect(() => {
+    if (Object.keys(realmIdToSlug).length === 0) return;
+    const levelsBySlug: Record<string, number> = {};
+    Object.values(realmProgress).forEach((p: any) => {
+      const s = realmIdToSlug[p.realm_id];
+      if (s) levelsBySlug[s] = p.current_level;
+    });
+    const allRestored = REALMS.every((r) => (levelsBySlug[r.id] || 0) >= 10);
+    const voidClear = (Number(stats.void_percentage) || 0) === 0;
+    if (allRestored && voidClear) {
+      const alreadySeen = typeof window !== "undefined" && localStorage.getItem("aetheriaRestoredSeen") === "true";
+      if (!alreadySeen) setShowRestored(true);
+    }
+  }, [realmProgress, realmIdToSlug, stats.void_percentage]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
@@ -161,6 +180,14 @@ export default function DashboardPage() {
               style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '999px', padding: '0.6rem 1rem', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', gap: '0.4rem', alignItems: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)', fontSize: 'inherit' }}
             >
               <Swords size={16} /> Begin Today's Quest
+            </button>
+            <button
+              onClick={() => router.push('/today')}
+              aria-label="Today's List"
+              title="Today"
+              style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '50%', padding: '0.6rem', color: '#c4b5fd', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}
+            >
+              <ListChecks size={18} />
             </button>
             <ThematicClock />
             <button
@@ -217,6 +244,15 @@ export default function DashboardPage() {
           onClose={() => setShowOnboarding(false)}
           onSaved={async () => {
             if (user) await loadActiveRealms(user.id);
+          }}
+        />
+      )}
+
+      {showRestored && (
+        <AetheriaRestoredOverlay
+          onDismiss={() => {
+            localStorage.setItem("aetheriaRestoredSeen", "true");
+            setShowRestored(false);
           }}
         />
       )}
