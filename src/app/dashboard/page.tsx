@@ -13,10 +13,13 @@ import { ThematicClock } from "@/components/Clock";
 import { REALMS } from "@/lib/realms";
 import { Swords } from "lucide-react";
 import { DashboardMapBackground } from "@/components/three/DashboardMapBackground";
+import { Canvas3DErrorBoundary } from "@/components/three/Canvas3DErrorBoundary";
+import { useWebGLSupport } from "@/hooks/useWebGLSupport";
 
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
+  const webglSupported = useWebGLSupport();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeRealmSlugs, setActiveRealmSlugs] = useState<Set<string>>(new Set());
@@ -133,7 +136,11 @@ export default function DashboardPage() {
 
   return (
     <div className="relative w-full h-[100vh]" style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#020617', perspective: 1400 }}>
-      <DashboardMapBackground awakenedSlugs={awakenedSlugs} />
+      {webglSupported !== false && (
+        <Canvas3DErrorBoundary>
+          <DashboardMapBackground awakenedSlugs={awakenedSlugs} voidPercentage={Number(stats.void_percentage) || 0} />
+        </Canvas3DErrorBoundary>
+      )}
       <MapParallax />
 
       {/* HUD (Heads Up Display) */}

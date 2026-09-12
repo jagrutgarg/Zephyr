@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { RealmTowers } from "./RealmTowers";
+import { VoidVortex } from "./VoidVortex";
 
 /**
  * Renders /models/environment/aetheria_map.glb as the World Map's 3D
@@ -16,7 +17,7 @@ import { RealmTowers } from "./RealmTowers";
  * so dragging empty space orbits the camera without breaking navigation.
  * Renders nothing if the model is missing.
  */
-export function DashboardMapBackground({ awakenedSlugs }: { awakenedSlugs: Set<string> }) {
+export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { awakenedSlugs: Set<string>; voidPercentage?: number }) {
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
       <Canvas
@@ -41,6 +42,7 @@ export function DashboardMapBackground({ awakenedSlugs }: { awakenedSlugs: Set<s
           </Suspense>
         </ModelErrorBoundary>
         <RealmTowers awakenedSlugs={awakenedSlugs} />
+        <VoidVortex percentage={voidPercentage} />
         <OrbitControls
           makeDefault
           enableDamping

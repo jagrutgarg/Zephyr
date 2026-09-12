@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from 'next/link';
 import { useParallax } from "@/hooks/useParallax";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { RealmModelPreviewWithFallback } from "@/components/three/RealmModelPreview";
 
 export function MapParallax() {
@@ -43,6 +44,7 @@ export function MapParallax() {
 export function RealmNode({ id, name, themeColor, x, y, guardian, attribute, level = 1, awakened = false }: { id: string, name: string, themeColor: string, x: number, y: number, guardian: string, attribute?: string, level?: number, awakened?: boolean }) {
     // Fake ground-plane depth: nodes further "back" (lower y%) sit smaller & duller
     const depthScale = 0.85 + (y / 100) * 0.3;
+    const reducedMotion = usePrefersReducedMotion();
 
     return (
       <motion.div
@@ -52,7 +54,7 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, attribute, lev
             width: '140px', height: '140px', marginLeft: '-70px', marginTop: '-70px',
             transform: `scale(${depthScale})`,
         }}
-        animate={{
+        animate={reducedMotion ? undefined : {
             y: [0, -10, 0]
         }}
         transition={{
