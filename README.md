@@ -76,6 +76,12 @@ Underneath the fiction, this is still a *fast* task manager:
 ### 👤 Accounts, Progression & Streaks
 Email/password auth via Supabase, a non-linear XP curve (`level = floor((xp/100)^(2/3)) + 1`, so mastery gets harder, not easier), daily streak tracking, and a "last active" login greeting that adapts depending on whether it's a new day or you're already back.
 
+### 🎧 Ambient Audio
+Looping background music once you're actually in Aetheria (silent on the public landing/auth pages), a click sound on every interaction, and a persistent volume/mute control — all preferences saved locally, all audio failures (autoplay blocked, missing files) fail silently rather than breaking the page.
+
+### 🌐 A Real Landing Page
+A multi-section marketing page at `/` — hero, the world's story, all 8 Realms, feature highlights, the Void — with scroll-triggered animations that replay every time a section re-enters view, not just once.
+
 ## Tech Stack
 
 | Layer | Choice |
@@ -104,10 +110,17 @@ Email/password auth via Supabase, a non-linear XP curve (`level = floor((xp/100)
 
 ## Getting Started
 
+This repo uses **Git LFS** for its larger `.glb` model files — install it once per machine before cloning, or the large models will check out as text pointers instead of real files:
+
 ```bash
+git lfs install
+git clone <this-repo-url>
+cd Zephyr
 npm install
 npm run dev
 ```
+
+If you already cloned without LFS installed, run `git lfs pull` inside the repo afterward.
 
 Open [http://localhost:3000](http://localhost:3000).
 
@@ -181,7 +194,8 @@ Built to be fully operable without a mouse:
 
 ## Known Limitations / Future Work
 
-- Only the Astral Library currently has a bespoke 3D Tower model; the other 7 Realms render their generic default visual until matching `.glb` assets are authored.
+- 4 of the 8 Realms (Astral Library, Enchanted Woods, Celestial Kingdom, Timeless Realm, Xyran Frontier) have a bespoke 3D Tower/landmark; the remaining ones render no landmark yet until matching `.glb` assets are authored and their in-map coordinates traced.
+- Some of the newer Tower models are large, high-detail source assets (tens to 100+ MB) not yet optimized for the web — they're stored via Git LFS so the repo itself stays clean, but they should go through Draco/meshopt compression and texture downscaling before this ships to real users, or first-load time on the World Map will suffer badly.
 - The Groq free tier has rate limits; classification gracefully falls back to a manual Realm picker if a call fails, but heavy concurrent demo traffic could hit that fallback more often.
 - No native mobile app — the web app is responsive, but the 3D World Map's camera controls are tuned primarily for mouse/trackpad and touch-drag on tablets.
 - A shard-spending economy (a "shop") is scaffolded conceptually but not yet implemented.

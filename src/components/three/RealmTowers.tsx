@@ -36,6 +36,27 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     modelPath: "/models/environment/enchanted_woods_island.glb",
     exposure: 0.12,
   },
+  {
+    realmSlug: "timeless_realm",
+    // Timeless_Realm Island node: translation [-9, 8, 39], yaw ~-23°.
+    position: [-9, 13, 39],
+    rotationY: -0.4,
+    scale: 0.05,
+  },
+  {
+    realmSlug: "celestial_kingdom",
+    // Celestial_Kingdom Island node: translation [34, 22, -21], yaw ~5.7°.
+    position: [34, 27, -21],
+    rotationY: 0.1,
+    scale: 0.05,
+  },
+  {
+    realmSlug: "xyran_frontier",
+    // Xyran_Frontier Island node: translation [42, 12, 16], yaw ~22.9°.
+    position: [42, 17, 16],
+    rotationY: 0.4,
+    scale: 0.2,
+  },
 ];
 
 /** Scales a tower up from nothing over ~1.2s the first time it renders — the "manifesting" moment. */
