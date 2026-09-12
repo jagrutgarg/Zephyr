@@ -7,6 +7,7 @@ import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { RealmTowers } from "./RealmTowers";
 import { VoidVortex } from "./VoidVortex";
+import { OceanLayer } from "./OceanLayer";
 
 /**
  * Renders /models/environment/aetheria_map.glb as the World Map's 3D
@@ -36,6 +37,7 @@ export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { 
         <pointLight position={[40, 80, 40]} intensity={3} decay={0} color="#8b5cf6" />
         <pointLight position={[-60, 40, -40]} intensity={1.2} decay={0} color="#3b82f6" />
         <directionalLight position={[30, 100, 60]} intensity={1.2} />
+        <OceanLayer />
         <ModelErrorBoundary fallback={null}>
           <Suspense fallback={null}>
             <AetheriaRevealIntro />
