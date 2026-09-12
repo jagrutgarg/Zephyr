@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
-const CHARACTER_MODEL_PATH = "/models/characters/player.glb";
+const CHARACTER_MODEL_PATH = "/models/characters/chibi_blindbox_girl.glb";
 
 function PrimitiveCharacter() {
   return (
@@ -26,9 +26,8 @@ function PrimitiveCharacter() {
 }
 
 /**
- * Renders /models/characters/player.glb if present, otherwise the
- * placeholder primitive body. Drop a .glb at that path and it swaps in
- * automatically — no code change needed (see public/models/README.md).
+ * Renders /models/characters/chibi_blindbox_girl.glb if present, otherwise
+ * the placeholder primitive body.
  */
 function CharacterVisual() {
   return (

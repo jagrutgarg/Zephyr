@@ -16,6 +16,7 @@ import { DashboardMapBackground } from "@/components/three/DashboardMapBackgroun
 import { Canvas3DErrorBoundary } from "@/components/three/Canvas3DErrorBoundary";
 import { useWebGLSupport } from "@/hooks/useWebGLSupport";
 import { AetheriaRestoredOverlay } from "@/components/AetheriaRestoredOverlay";
+import { DailyGreeting } from "@/components/DailyGreeting";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [focusNotice, setFocusNotice] = useState<{ type: "active" | "completed"; realmSlug: string; realmName: string; questTitle: string } | null>(null);
   const [showRestored, setShowRestored] = useState(false);
+  const [greeting, setGreeting] = useState<{ mode: "new_day" | "same_day_pending" | "same_day_clear"; openCount: number } | null>(null);
 
   // Zustand Score Hook
   const { stats, realmProgress, setStats, setRealmProgress } = useGameStore();
@@ -107,6 +109,22 @@ export default function DashboardPage() {
         }
       }
 
+      // Daily greeting: a fresh prompt the first time you land here on a
+      // given day, a different nudge if you're already back the same day.
+      const todayStr = new Date().toDateString();
+      const lastGreetDate = typeof window !== "undefined" ? localStorage.getItem("lastGreetDate") : todayStr;
+      if (lastGreetDate !== todayStr) {
+        setGreeting({ mode: "new_day", openCount: 0 });
+      } else {
+        const { count } = await supabase
+          .from("quests")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("is_completed", false);
+        setGreeting({ mode: count && count > 0 ? "same_day_pending" : "same_day_clear", openCount: count || 0 });
+      }
+      if (typeof window !== "undefined") localStorage.setItem("lastGreetDate", todayStr);
+
       setLoading(false);
     }
     loadData();
@@ -152,12 +170,17 @@ export default function DashboardPage() {
     if (slug) progressBySlug[slug] = p;
   });
   const awakenedSlugs = new Set(Object.entries(progressBySlug).filter(([, p]) => (p.current_xp || 0) > 0).map(([slug]) => slug));
+  // The Astral Library's tower model is ready to show off regardless of
+  // progress (a deliberate exception to the "awaken via first quest" rule,
+  // for demo purposes) — other realms still follow the normal gate.
+  const ALWAYS_VISIBLE_TOWERS = new Set(["astral_library"]);
+  const visibleTowerSlugs = new Set([...awakenedSlugs, ...ALWAYS_VISIBLE_TOWERS]);
 
   return (
     <div className="relative w-full h-[100vh]" style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#020617', perspective: 1400 }}>
       {webglSupported !== false && (
         <Canvas3DErrorBoundary>
-          <DashboardMapBackground awakenedSlugs={awakenedSlugs} voidPercentage={Number(stats.void_percentage) || 0} />
+          <DashboardMapBackground awakenedSlugs={visibleTowerSlugs} voidPercentage={Number(stats.void_percentage) || 0} />
         </Canvas3DErrorBoundary>
       )}
       <MapParallax />
@@ -217,12 +240,23 @@ export default function DashboardPage() {
           </div>
       )}
 
+      {greeting && !focusNotice && (
+          <DailyGreeting
+              mode={greeting.mode}
+              openCount={greeting.openCount}
+              displayName={user?.user_metadata?.display_name}
+              onBeginQuest={() => { setGreeting(null); router.push('/quest-walker'); }}
+              onViewToday={() => { setGreeting(null); router.push('/today'); }}
+              onDismiss={() => setGreeting(null)}
+          />
+      )}
+
       {/* All 8 Realms are always visible — but a Realm's Tower only manifests once awakened by a first completed Quest */}
       {REALMS.map(realm => {
          const progress = progressBySlug[realm.id];
          const nodeLevel = progress ? progress.current_level : 1;
 
-         return <RealmNode key={realm.id} {...realm} level={nodeLevel} awakened={awakenedSlugs.has(realm.id)} />
+         return <RealmNode key={realm.id} {...realm} level={nodeLevel} awakened={visibleTowerSlugs.has(realm.id)} />
       })}
 
       <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1, color: '#64748b', fontSize: '0.8rem', pointerEvents: 'none' }}>
