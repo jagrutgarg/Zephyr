@@ -161,7 +161,7 @@ export function AetheriaRevealIntro({
       });
       perspective.fov = restingCameraRef.current!.fov * 0.82;
       perspective.updateProjectionMatrix();
-      blurRef.current!.uniforms.uBlurAmount.value = 18;
+      blurRef.current!.uniforms.uBlurAmount.value = 8;
       playingRef.current = true;
 
       const directions = [new THREE.Vector3(0, 0, 4), new THREE.Vector3(-6, 0.5, -3), new THREE.Vector3(6, 0.5, -3), new THREE.Vector3(0, 2, -6), new THREE.Vector3(0, -1, 7)];
