@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Sparkles, Clock, Repeat, ListChecks, Wand2, ArrowDown } from "lucide-react";
 import { TwinklingStars } from "@/components/TwinklingStars";
 import { REALMS } from "@/lib/realms";
@@ -59,8 +60,27 @@ const FEATURES = [
 ];
 
 export default function Home() {
+  const [showScrollHint, setShowScrollHint] = useState(false);
+
+  useEffect(() => {
+    const revealTimer = setTimeout(() => setShowScrollHint(true), 1200);
+    const handleScroll = () => {
+      if (window.scrollY > 80) setShowScrollHint(false);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(revealTimer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
-    <div style={{ background: "#020617", color: "white", overflowX: "hidden" }}>
+    <div style={{ background: "#020617", color: "white", overflowX: "hidden", position: "relative" }}>
+      {/* Starfield stays fixed behind the whole scrollable page, not just the hero */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
+        <TwinklingStars count={180} />
+      </div>
+
       {/* Fixed nav */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.2rem 1.5rem", backdropFilter: "blur(10px)", background: "rgba(2,6,23,0.5)" }}>
         <div style={{ fontWeight: "bold", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -96,17 +116,37 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          style={{ position: "absolute", bottom: "2.5rem", color: "#64748b", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem", fontSize: "0.8rem" }}
-        >
-          Scroll to learn the story <ArrowDown size={16} />
-        </motion.div>
+        <AnimatePresence>
+          {showScrollHint && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: [0, 8, 0], scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ opacity: { duration: 0.4 }, scale: { duration: 0.4 }, y: { duration: 2, repeat: Infinity, ease: "easeInOut" } }}
+              style={{
+                position: "absolute",
+                bottom: "2.5rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                fontSize: "0.85rem",
+                color: "#e2e8f0",
+                background: "rgba(139,92,246,0.15)",
+                border: "1px solid rgba(139,92,246,0.4)",
+                borderRadius: "999px",
+                padding: "0.55rem 1.1rem",
+                backdropFilter: "blur(8px)",
+                boxShadow: "0 4px 20px rgba(139,92,246,0.25)",
+              }}
+            >
+              Scroll to learn the story <ArrowDown size={16} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* THE STORY */}
-      <Section style={{ background: "linear-gradient(180deg, #020617 0%, #0b0f2e 100%)" }}>
+      <Section style={{ background: "linear-gradient(180deg, rgba(2,6,23,0.7) 0%, rgba(11,15,46,0.7) 100%)" }}>
         <motion.div {...fadeUp} style={{ textAlign: "center", maxWidth: "700px", margin: "0 auto" }}>
           <div style={{ color: "#94a3b8", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>The Story</div>
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", fontSize: "1.15rem", lineHeight: 1.7, color: "#e2e8f0" }}>
@@ -125,7 +165,7 @@ export default function Home() {
       </Section>
 
       {/* THE REALMS */}
-      <Section style={{ background: "#0b0f2e" }}>
+      <Section style={{ background: "rgba(11,15,46,0.7)" }}>
         <motion.div {...fadeUp} style={{ textAlign: "center", marginBottom: "3rem" }}>
           <div style={{ color: "#94a3b8", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.75rem" }}>Eight Realms</div>
           <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800 }}>Every part of your life has a home here</h2>
@@ -162,7 +202,7 @@ export default function Home() {
       </Section>
 
       {/* FEATURES */}
-      <Section style={{ background: "linear-gradient(180deg, #0b0f2e 0%, #020617 100%)" }}>
+      <Section style={{ background: "linear-gradient(180deg, rgba(11,15,46,0.7) 0%, rgba(2,6,23,0.7) 100%)" }}>
         <motion.div {...fadeUp} style={{ textAlign: "center", marginBottom: "3.5rem" }}>
           <div style={{ color: "#94a3b8", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "0.75rem" }}>How It Works</div>
           <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800 }}>A todo list that actually feels like something</h2>
@@ -199,7 +239,7 @@ export default function Home() {
       </Section>
 
       {/* THE VOID */}
-      <Section style={{ background: "radial-gradient(circle at 50% 50%, #1e1b2e 0%, #020617 70%)" }}>
+      <Section style={{ background: "radial-gradient(circle at 50% 50%, rgba(30,27,46,0.75) 0%, rgba(2,6,23,0.75) 70%)" }}>
         <motion.div {...fadeIn} style={{ textAlign: "center", maxWidth: "650px", margin: "0 auto" }}>
           <motion.div
             animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
@@ -215,7 +255,7 @@ export default function Home() {
       </Section>
 
       {/* FINAL CTA */}
-      <Section style={{ background: "#020617", paddingBottom: "8rem" }}>
+      <Section style={{ background: "rgba(2,6,23,0.7)", paddingBottom: "8rem" }}>
         <motion.div {...fadeUp} style={{ textAlign: "center" }}>
           <Swords size={40} color="#8b5cf6" style={{ marginBottom: "1.5rem" }} />
           <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 800, marginBottom: "1rem" }}>Begin your journey</h2>
