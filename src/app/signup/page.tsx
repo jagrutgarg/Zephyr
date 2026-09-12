@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import ParticleBackground from "@/components/ParticleBackground";
 import { motion } from "framer-motion";
+import { AuthEmblem } from "@/components/AuthEmblem";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -128,14 +128,13 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-container aetheria-auth">
       <div className="auth-background-shapes">
-        <ParticleBackground />
         <div className="shape-1" />
         <div className="shape-2" />
       </div>
 
-      <motion.div 
+      <motion.div
         className="auth-card"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -143,22 +142,10 @@ export default function SignupPage() {
       >
         <div className="auth-header">
           <div className="auth-logo">
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              />
-            </svg>
+            <AuthEmblem />
           </div>
-          <h1 className="auth-title">Bind Your Fate to Aetheria</h1>
-          <p className="auth-subtitle">Every Guardian begins with a spark of Aether. Create your path.</p>
+          <h1 className="auth-title">Aetheria</h1>
+          <p className="auth-subtitle">The Realms of Aether</p>
         </div>
 
         {error && (

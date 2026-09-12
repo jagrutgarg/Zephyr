@@ -14,9 +14,9 @@ export function TwinklingStars({ count = 90, color = "#ffffff" }: { count?: numb
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: Math.random() * 1.8 + 0.8,
-        delay: Math.random() * 6,
-        duration: Math.random() * 3 + 2,
+        size: Math.random() * 2.2 + 1,
+        delay: Math.random() * 4,
+        duration: Math.random() * 2 + 1.4,
       }))
     );
   }, [count]);

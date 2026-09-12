@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { AuthEmblem } from "@/components/AuthEmblem";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="auth-container">
+    <div className="auth-container aetheria-auth">
       <div className="auth-background-shapes">
         <div className="shape-1" />
         <div className="shape-2" />
@@ -121,21 +122,9 @@ export default function ForgotPasswordPage() {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <svg
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-              />
-            </svg>
+            <AuthEmblem />
           </div>
-          <h1 className="auth-title">
+          <h1 className="auth-title" style={{ fontSize: "1.9rem" }}>
             {step === "request" ? "Reset Password" : "Verify OTP Code"}
           </h1>
           <p className="auth-subtitle">
