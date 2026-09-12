@@ -635,3 +635,45 @@ body {
   border: 1px solid rgba(90, 160, 120, 0.3);
   color: #2f6b47;
 }
+
+/* Tighter vertical rhythm — the light auth card was reading too tall/long. */
+.aetheria-auth .auth-card {
+  padding: 1.8rem 2rem;
+}
+.aetheria-auth .auth-header {
+  margin-bottom: 1.1rem;
+}
+.aetheria-auth .auth-logo {
+  margin-bottom: 0.5rem;
+}
+.aetheria-auth .auth-logo svg {
+  width: 44px;
+  height: 44px;
+}
+.aetheria-auth .auth-title {
+  font-size: 2.1rem;
+  margin-bottom: 0.15rem;
+}
+.aetheria-auth .form-group {
+  margin-bottom: 0.75rem;
+}
+.aetheria-auth .form-label {
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+}
+.aetheria-auth .form-input {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+.aetheria-auth .form-options {
+  margin-bottom: 1rem;
+}
+.aetheria-auth .btn-primary {
+  padding: 0.7rem;
+}
+.aetheria-auth .divider {
+  margin: 1.1rem 0;
+}
+.aetheria-auth .auth-footer {
+  margin-top: 1.2rem;
+}
