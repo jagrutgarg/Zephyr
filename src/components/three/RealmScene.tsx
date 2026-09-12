@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { OrbitCharacter } from "./OrbitCharacter";
+import { GltfModel } from "./GltfModel";
+import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
-function Centerpiece({ color, celebrating }: { color: string; celebrating: boolean }) {
+function PrimitiveCenterpiece({ color, celebrating }: { color: string; celebrating: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((_, delta) => {
@@ -17,17 +19,33 @@ function Centerpiece({ color, celebrating }: { color: string; celebrating: boole
   });
 
   return (
+    <mesh ref={meshRef} castShadow>
+      <icosahedronGeometry args={[1, 1]} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={celebrating ? 0.9 : 0.4} roughness={0.3} />
+    </mesh>
+  );
+}
+
+/**
+ * Renders /models/realms/<slug>.glb if present, otherwise the placeholder
+ * icosahedron. Drop a .glb at that path and it swaps in automatically —
+ * no code change needed (see public/models/README.md).
+ */
+function Centerpiece({ realmSlug, color, celebrating }: { realmSlug: string; color: string; celebrating: boolean }) {
+  return (
     <>
-      <mesh ref={meshRef} castShadow>
-        <icosahedronGeometry args={[1, 1]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={celebrating ? 0.9 : 0.4} roughness={0.3} />
-      </mesh>
+      <ModelErrorBoundary fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
+        <Suspense fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
+          <GltfModel path={`/models/realms/${realmSlug}.glb`} />
+        </Suspense>
+      </ModelErrorBoundary>
       {celebrating && <Sparkles count={80} scale={4} size={4} speed={0.6} color={color} />}
     </>
   );
 }
 
 export function RealmScene({
+  realmSlug,
   themeColor,
   orbitRadius = 2.6,
   startTs,
@@ -35,6 +53,7 @@ export function RealmScene({
   onOrbitComplete,
   celebrating = false,
 }: {
+  realmSlug: string;
   themeColor: string;
   orbitRadius?: number;
   startTs: number;
@@ -54,7 +73,7 @@ export function RealmScene({
       <pointLight position={[4, 5, 4]} intensity={60} color={themeColor} castShadow />
       <pointLight position={[-4, 2, -3]} intensity={20} color="#ffffff" />
 
-      <Centerpiece color={themeColor} celebrating={celebrating} />
+      <Centerpiece realmSlug={realmSlug} color={themeColor} celebrating={celebrating} />
 
       <OrbitCharacter radius={orbitRadius} startTs={startTs} durationMs={durationMs} onComplete={onOrbitComplete} />
 

@@ -295,6 +295,7 @@ export default function QuestWalkerPage() {
         {(step === "focus" || step === "celebrating") && realm && (
           <motion.div key="focus" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: "absolute", inset: 0 }}>
             <RealmScene
+              realmSlug={realm.id}
               themeColor={realm.themeColor}
               startTs={startTs}
               durationMs={durationMs}
