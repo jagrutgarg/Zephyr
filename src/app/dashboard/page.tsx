@@ -173,7 +173,7 @@ export default function DashboardPage() {
   // The Astral Library's tower model is ready to show off regardless of
   // progress (a deliberate exception to the "awaken via first quest" rule,
   // for demo purposes) — other realms still follow the normal gate.
-  const ALWAYS_VISIBLE_TOWERS = new Set(["astral_library"]);
+  const ALWAYS_VISIBLE_TOWERS = new Set(["astral_library", "enchanted_woods"]);
   const visibleTowerSlugs = new Set([...awakenedSlugs, ...ALWAYS_VISIBLE_TOWERS]);
 
   return (
