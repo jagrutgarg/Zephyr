@@ -5,7 +5,8 @@ export type Attribute =
   | "Creativity"
   | "Discipline"
   | "Connection"
-  | "Exploration";
+  | "Exploration"
+  | "Miscellany";
 
 export type RealmDef = {
   id: string; // matches realms.slug in Supabase
@@ -25,6 +26,8 @@ export const REALMS: RealmDef[] = [
   { id: "xyran_frontier", name: "Xyran Frontier", guardian: "The Star Wanderer", themeColor: "#6366f1", attribute: "Exploration", x: 60, y: 85 },
   { id: "timeless_realm", name: "The Timeless Realm", guardian: "The Chronomancer", themeColor: "#14b8a6", attribute: "Discipline", x: 30, y: 85 },
   { id: "dreaming_isles", name: "The Dreaming Isles", guardian: "The Dream Weaver", themeColor: "#f472b6", attribute: "Creativity", x: 10, y: 60 },
+  // Catch-all Realm — deliberately placed at the map's margin, outside the core cluster of 7.
+  { id: "wandering_isles", name: "The Wandering Isles", guardian: "The Wayfinder", themeColor: "#94a3b8", attribute: "Miscellany", x: 95, y: 50 },
 ];
 
 export function findRealmBySlug(slug: string): RealmDef | undefined {
