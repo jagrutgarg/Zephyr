@@ -1,23 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from 'next/link';
+import { useParallax } from "@/hooks/useParallax";
 
 export function MapParallax() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      // Calculate normalized mouse position from -1 to 1
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1,
-      });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  const mousePosition = useParallax();
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0, position: 'absolute', inset: 0, overflow: 'hidden' }}>
@@ -52,12 +40,17 @@ export function MapParallax() {
 }
 
 export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: { id: string, name: string, themeColor: string, x: number, y: number, guardian: string, level?: number }) {
+    // Fake ground-plane depth: nodes further "back" (lower y%) sit smaller & duller
+    const depthScale = 0.85 + (y / 100) * 0.3;
+
     return (
       <motion.div
         className="realm-node-wrapper"
         style={{
             position: 'absolute', left: `${x}%`, top: `${y}%`,
-            width: '120px', height: '120px', marginLeft: '-60px', marginTop: '-60px'
+            width: '120px', height: '120px', marginLeft: '-60px', marginTop: '-60px',
+            transform: `scale(${depthScale})`,
+            perspective: 800
         }}
         animate={{
             y: [0, -10, 0]
@@ -78,10 +71,11 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: {
                 border: `2px solid ${themeColor}`,
                 display: 'flex', flexDirection: 'column',
                 justifyContent: 'center', alignItems: 'center',
-                boxShadow: `0 0 20px ${themeColor}40`,
-                textDecoration: 'none', cursor: 'pointer'
+                boxShadow: `0 8px 20px rgba(0,0,0,0.5), 0 0 20px ${themeColor}40`,
+                textDecoration: 'none', cursor: 'pointer',
+                transformStyle: 'preserve-3d'
             }}
-            whileHover={{ scale: 1.05, boxShadow: `0 0 40px ${themeColor}80` }}
+            whileHover={{ scale: 1.08, rotateX: -10, rotateY: 10, boxShadow: `0 16px 30px rgba(0,0,0,0.6), 0 0 40px ${themeColor}80` }}
             whileTap={{ scale: 0.95 }}
           >
              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px' }}>{name}</div>

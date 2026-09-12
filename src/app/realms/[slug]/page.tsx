@@ -9,6 +9,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
+import { DIFF_MAPPING } from "@/lib/questDefaults";
 
 type Quest = {
   id: string;
@@ -19,13 +20,6 @@ type Quest = {
   shard_value: number;
   due_date: string | null;
   is_completed: boolean;
-};
-
-// Define difficulty scaling
-const DIFF_MAPPING = {
-    easy: { xp: 10, shard: 5 },
-    normal: { xp: 25, shard: 12 },
-    hard: { xp: 50, shard: 25 },
 };
 
 export default function RealmPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -173,6 +167,9 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
              reduceVoid(2);
              // Streak logic is handled simply in the store if we want, or we just rely on DB fetch later
              gainRealmXP(realm.id, q.xp_value, data.leveled_up, data.new_level);
+             if (typeof window !== "undefined") {
+                 sessionStorage.setItem("lastCompletedRealmSlug", slug);
+             }
              if (data.leveled_up) {
                  alert(`The ${realm.guardian} smiles! ${realm.name} grew to level ${data.new_level}!`);
              }
