@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParallax } from "@/hooks/useParallax";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { TwinklingStars } from "./TwinklingStars";
-import { RealmModelPreviewWithFallback } from "@/components/three/RealmModelPreview";
 
 export function MapParallax() {
   const mousePosition = useParallax();
@@ -79,7 +78,8 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, attribute, lev
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
           >
-             {/* The Realm's 3D tower model — /models/realms/<id>.glb — only once awakened by a first completed Quest */}
+             {/* The Realm's actual Tower now lives in the 3D World Map scene itself (RealmTowers) —
+                 this node is just a flat glowing badge, once awakened by a first completed Quest */}
              <AnimatePresence>
                 {awakened && (
                     <motion.div
@@ -87,10 +87,8 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, attribute, lev
                         initial={{ opacity: 0, scale: 0.4 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.9, ease: "backOut" }}
-                        style={{ position: 'absolute', inset: 0 }}
-                    >
-                        <RealmModelPreviewWithFallback realmSlug={id} fallback={null} />
-                    </motion.div>
+                        style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: `radial-gradient(circle, ${themeColor}30 0%, transparent 70%)`, border: `1px solid ${themeColor}80`, boxShadow: `0 0 20px ${themeColor}40` }}
+                    />
                 )}
              </AnimatePresence>
              {!awakened && (
