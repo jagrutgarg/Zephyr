@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { OrbitCharacter } from "./OrbitCharacter";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
+import { EnvironmentBackground } from "./EnvironmentBackground";
 
 function PrimitiveCenterpiece({ color, celebrating }: { color: string; celebrating: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -72,6 +73,8 @@ export function RealmScene({
       <ambientLight intensity={0.4} />
       <pointLight position={[4, 5, 4]} intensity={60} color={themeColor} castShadow />
       <pointLight position={[-4, 2, -3]} intensity={20} color="#ffffff" />
+
+      <EnvironmentBackground />
 
       <Centerpiece realmSlug={realmSlug} color={themeColor} celebrating={celebrating} />
 

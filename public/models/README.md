@@ -30,6 +30,20 @@ Each renders in place of the default glowing icosahedron in
 `src/components/three/RealmScene.tsx`. Keep them roughly 1-2 units
 across so they fit the existing camera framing and orbit radius.
 
+The same file also auto-renders as a small live 3D preview on the
+Dashboard World Map's Realm node (in place of its flat 2D card) —
+see `src/components/three/RealmModelPreview.tsx`, used from
+`src/components/MapComponents.tsx`.
+
+## Environment / background
+```
+public/models/environment/aetheria_map.glb
+```
+Ambient background model rendered behind everything in the Realm Walker
+focus scene (`src/components/three/EnvironmentBackground.tsx`), used by
+`RealmScene`. If missing, the scene just falls back to its plain
+starfield/ground — nothing else changes.
+
 ## Format notes
 - Export as binary `.glb` (not `.gltf` + separate textures) for a single
   self-contained file.

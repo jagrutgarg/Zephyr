@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from 'next/link';
 import { useParallax } from "@/hooks/useParallax";
+import { RealmModelPreviewWithFallback } from "@/components/three/RealmModelPreview";
 
 export function MapParallax() {
   const mousePosition = useParallax();
@@ -78,8 +79,12 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: {
             whileHover={{ scale: 1.08, rotateX: -10, rotateY: 10, boxShadow: `0 16px 30px rgba(0,0,0,0.6), 0 0 40px ${themeColor}80` }}
             whileTap={{ scale: 0.95 }}
           >
-             <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px' }}>{name}</div>
-             <div style={{ fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '4px' }}>{guardian}</div>
+             {/* 3D preview if /models/realms/<id>.glb exists, silently absent otherwise */}
+             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', overflow: 'hidden' }}>
+                <RealmModelPreviewWithFallback realmSlug={id} fallback={null} />
+             </div>
+             <div style={{ position: 'relative', fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px', textShadow: '0 2px 6px rgba(0,0,0,0.8)' }}>{name}</div>
+             <div style={{ position: 'relative', fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '4px', textShadow: '0 2px 6px rgba(0,0,0,0.8)' }}>{guardian}</div>
              <div style={{ position: 'absolute', bottom: '-15px', background: themeColor, color: 'black', borderRadius: '12px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
           </motion.div>
         </Link>
