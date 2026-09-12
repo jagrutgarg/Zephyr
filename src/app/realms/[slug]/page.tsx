@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Check, Trash2, Edit2, Calendar } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { useGameStore } from "@/store/useGameStore";
+import { ThematicClock } from "@/components/Clock";
 
 type Quest = {
   id: string;
@@ -198,9 +199,13 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
               <h1 className="text-4xl font-bold mb-2">{realm?.name}</h1>
               <p className="text-slate-400">Guarded by {realm?.guardian}</p>
             </div>
-            <button onClick={() => openModal()} className="btn-primary" style={{ background: realm?.accent_color, boxShadow: `0 4px 15px ${realm?.accent_color}40`, border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}>
-               <Plus size={18} /> New Quest
-            </button>
+            
+            <div className="flex items-center gap-6">
+                <div className="hidden sm:block"><ThematicClock /></div>
+                <button onClick={() => openModal()} className="btn-primary" style={{ background: realm?.accent_color, boxShadow: `0 4px 15px ${realm?.accent_color}40`, border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}>
+                   <Plus size={18} /> New Quest
+                </button>
+            </div>
          </div>
 
          {/* Quest List */}
@@ -234,7 +239,20 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                     {q.description && <p className="text-sm text-slate-400 mt-1">{q.description}</p>}
                                     <div className="flex gap-3 mt-2 text-xs">
                                         <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)' }}>{q.difficulty.toUpperCase()} • XP {DIFF_MAPPING[q.difficulty].xp}</span>
-                                        {q.due_date && <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={12}/> {new Date(q.due_date).toLocaleDateString()}</span>}
+                                        {q.due_date && (
+                                           <span style={{ 
+                                               padding: '2px 8px', 
+                                               borderRadius: '12px', 
+                                               background: new Date(q.due_date) < new Date() ? 'rgba(239, 68, 68, 0.3)' : 'rgba(148, 163, 184, 0.2)', 
+                                               color: new Date(q.due_date) < new Date() ? '#fca5a5' : '#cbd5e1', 
+                                               display: 'flex', alignItems: 'center', gap: '4px',
+                                               border: new Date(q.due_date) < new Date() ? '1px solid rgba(239, 68, 68, 0.5)' : 'none'
+                                           }}>
+                                               <Calendar size={12}/> 
+                                               {new Date(q.due_date).toLocaleDateString()}
+                                               {new Date(q.due_date) < new Date() && " (Overdue)"}
+                                           </span>
+                                        )}
                                     </div>
                                  </div>
                              </div>

@@ -8,6 +8,7 @@ import { User } from "@supabase/supabase-js";
 import { MapParallax, RealmNode, VoidNode } from "@/components/MapComponents";
 import { LogOut } from "lucide-react";
 import { useGameStore } from "@/store/useGameStore";
+import { ThematicClock } from "@/components/Clock";
 
 const REALMS = [
   { id: 'enchanted_woods', name: 'The Enchanted Woods', guardian: 'The Fairy Keeper', themeColor: '#10b981', x: 20, y: 30 },
@@ -42,6 +43,12 @@ export default function DashboardPage() {
       // Load global stats
       const { data: statsData } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single();
       if (statsData) setStats(statsData);
+
+      // Passive Void Growth check
+      const { data: voidUpdate } = await supabase.rpc('sync_passive_void');
+      if (voidUpdate && voidUpdate.void_percentage !== undefined) {
+         setStats({ ...statsData, void_percentage: voidUpdate.void_percentage });
+      }
 
       // Load Realm Progress
       const { data: realmData } = await supabase.from('user_realm_progress').select('*').eq('user_id', user.id);
@@ -80,9 +87,12 @@ export default function DashboardPage() {
             <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {stats.streak_count}</div>
         </div>
         
-        <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
-           <LogOut size={20} />
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <ThematicClock />
+            <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
+               <LogOut size={20} />
+            </button>
+        </div>
       </div>
 
       {/* Center Hub / Void */}
