@@ -34,7 +34,7 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     rotationY: 0.5,
     scale: 0.6,
     modelPath: "/models/environment/enchanted_woods_island.glb",
-    exposure: 0.35,
+    exposure: 0.12,
   },
 ];
 
