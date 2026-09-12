@@ -4,10 +4,11 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Check, Trash2, Edit2, Calendar } from "lucide-react";
+import { Plus, X, Check, Trash2, Edit2, Calendar, CalendarPlus } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
+import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
 
 type Quest = {
   id: string;
@@ -179,6 +180,17 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       }
   };
 
+  const handleAddToCalendar = (questDetails: { title: string, description?: string, dueDate: string }) => {
+      if (!questDetails.dueDate) return;
+      const url = buildGoogleCalendarUrl({
+          title: questDetails.title,
+          description: questDetails.description,
+          dueDate: new Date(questDetails.dueDate),
+          realmName: realm?.name || "Unknown Realm"
+      });
+      window.open(url, '_blank');
+  };
+
   if (loading) return <div className="auth-container"><div className="spinner"></div></div>;
 
   const activeQuests = quests.filter(q => !q.is_completed);
@@ -258,6 +270,14 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                              </div>
 
                              <div className="flex gap-2">
+                                 {q.due_date && (
+                                     <button 
+                                        onClick={() => handleAddToCalendar({ title: q.title, description: q.description, dueDate: q.due_date! })} 
+                                        title="Add to Google Calendar"
+                                        style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
+                                         <CalendarPlus size={18} />
+                                     </button>
+                                 )}
                                  <button onClick={() => openModal(q)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><Edit2 size={18} /></button>
                                  <button onClick={() => handleDelete(q.id)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={18} /></button>
                              </div>
@@ -315,8 +335,20 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                 </select>
                             </div>
                             <div className="form-group flex-1 mb-0">
-                                <label className="form-label">Due Date (Optional)</label>
-                                <input type="date" className="form-input" style={{paddingLeft: '1rem'}} value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                                <div className="flex justify-between items-center">
+                                    <label className="form-label">Due Date (Optional)</label>
+                                    {dueDate && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleAddToCalendar({ title, description, dueDate })}
+                                            title="Add to Google Calendar"
+                                            style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0 }}
+                                        >
+                                            <CalendarPlus size={16} />
+                                        </button>
+                                    )}
+                                </div>
+                                <input type="date" className="form-input mt-1" style={{paddingLeft: '1rem'}} value={dueDate} onChange={e => setDueDate(e.target.value)} />
                             </div>
                         </div>
                         <button type="submit" className="btn-primary mt-4" style={{ background: realm?.accent_color, color: 'black' }}>
