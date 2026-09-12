@@ -13,6 +13,7 @@ import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { REALMS } from "@/lib/realms";
 import { Swords } from "lucide-react";
+import { DashboardMapBackground } from "@/components/three/DashboardMapBackground";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -120,6 +121,7 @@ export default function DashboardPage() {
 
   return (
     <div className="relative w-full h-[100vh]" style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#020617', perspective: 1400 }}>
+      <DashboardMapBackground />
       <MapParallax />
 
       {/* HUD (Heads Up Display) */}
