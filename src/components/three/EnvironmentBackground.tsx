@@ -4,11 +4,11 @@ import { Suspense } from "react";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
-const MAP_MODEL_PATH = "/models/environment/aetheria_map.glb";
+const MAP_MODEL_PATH = "/models/environment/aetheria_ocean.glb";
 
 /**
  * Ambient background environment behind the Realm Walker focus scene.
- * Renders /models/environment/aetheria_map.glb if present; renders nothing
+ * Renders /models/environment/aetheria_ocean.glb if present; renders nothing
  * (not even a placeholder) if it's missing or fails to load, so the scene
  * degrades to the plain starfield/ground it already has.
  */

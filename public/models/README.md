@@ -37,11 +37,12 @@ see `src/components/three/RealmModelPreview.tsx`, used from
 
 ## Environment / background
 ```
-public/models/environment/aetheria_map.glb
+public/models/environment/aetheria_ocean.glb
 ```
-Ambient background model rendered behind everything in the Realm Walker
-focus scene (`src/components/three/EnvironmentBackground.tsx`), used by
-`RealmScene`. If missing, the scene just falls back to its plain
+The World Map's 3D backdrop (`src/components/three/OceanLayer.tsx`,
+used by `DashboardMapBackground`), and also the ambient background behind
+the Realm Walker focus scene (`EnvironmentBackground.tsx`, used by
+`RealmScene`). If missing, either scene just falls back to its plain
 starfield/ground — nothing else changes.
 
 ## Format notes

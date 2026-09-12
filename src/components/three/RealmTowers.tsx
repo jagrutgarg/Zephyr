@@ -8,19 +8,16 @@ import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
 type TowerPlacement = {
   realmSlug: string;
-  /** World position on the map, traced from aetheria_map.glb's own island nodes. */
+  /** World position on the map, in the ocean scene's coordinate space. */
   position: [number, number, number];
   rotationY?: number;
   scale?: number;
 };
 
-// Extend this as more Realm tower .glb files and their island coordinates
-// (traced from aetheria_map.glb's "<Realm> Island" nodes) become available.
+// Extend this as more Realm tower .glb files become available.
 const TOWER_PLACEMENTS: TowerPlacement[] = [
   {
     realmSlug: "astral_library",
-    // Astral_Library Island node: translation [-27, 15, -46], yaw ~-17.3°.
-    // +5 on Y lifts the tower from the island's center anchor to sit on top.
     position: [-27, 20, -46],
     rotationY: -0.3,
     scale: 1.2,
