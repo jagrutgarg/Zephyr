@@ -170,6 +170,10 @@ export default function DashboardPage() {
       {/* Player Character */}
       {characterTarget && <PlayerCharacter x={characterTarget.x} y={characterTarget.y} isWalking={isWalking} />}
 
+      <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1, color: '#64748b', fontSize: '0.8rem', pointerEvents: 'none' }}>
+        Drag to explore the map · Scroll to zoom
+      </div>
+
       {/* Empty-map prompt */}
       {activeRealms.length === 0 && !showOnboarding && (
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 6, textAlign: 'center', color: '#cbd5e1', maxWidth: '360px' }}>

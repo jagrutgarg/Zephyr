@@ -285,12 +285,12 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
 
              {completedQuests.length > 0 && (
                  <div className="mt-12">
-                     <h2 className="text-xl font-semibold mb-4 text-slate-500">Completed Quests</h2>
-                     <div className="opacity-50">
+                     <h2 className="text-xl font-semibold mb-4 text-slate-400">Completed Quests ({completedQuests.length})</h2>
+                     <div className="space-y-3">
                          {completedQuests.map(q => (
-                             <div key={q.id} style={{ background: 'rgba(15, 23, 42, 0.4)', borderRadius: '16px', padding: '1rem', display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                 <h3 className="line-through">{q.title}</h3>
-                                 <button onClick={() => handleDelete(q.id)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                             <div key={q.id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: `1px solid ${realm?.accent_color}30`, borderLeft: `3px solid ${realm?.accent_color}80`, borderRadius: '12px', padding: '0.9rem 1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                 <h3 className="line-through text-slate-300">{q.title}</h3>
+                                 <button onClick={() => handleDelete(q.id)} aria-label="Delete quest" style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={16} /></button>
                              </div>
                          ))}
                      </div>
