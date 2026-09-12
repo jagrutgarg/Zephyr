@@ -78,9 +78,9 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: {
              <div style={{ position: 'absolute', inset: 0 }}>
                 <RealmModelPreviewWithFallback realmSlug={id} fallback={null} />
              </div>
-             <div style={{ position: 'relative', fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>{name}</div>
-             <div style={{ position: 'relative', fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '2px', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>{guardian}</div>
-             <div style={{ position: 'relative', marginTop: '4px', background: themeColor, color: 'black', borderRadius: '12px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
+             <div style={{ position: 'relative', fontSize: '0.68rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{name}</div>
+             <div style={{ position: 'relative', fontSize: '0.52rem', color: '#cbd5e1', textAlign: 'center', marginTop: '1px', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{guardian}</div>
+             <div style={{ position: 'relative', marginTop: '3px', background: themeColor, color: 'black', borderRadius: '10px', padding: '1px 7px', fontSize: '0.58rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
           </motion.div>
         </Link>
       </motion.div>

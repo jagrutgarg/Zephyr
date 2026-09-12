@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
       {/* HUD (Heads Up Display) */}
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', background: 'rgba(15,23,42,0.8)', padding: '0.5rem 1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'flex', gap: '0.85rem', fontSize: '0.85rem', background: 'rgba(15,23,42,0.8)', padding: '0.4rem 0.85rem', borderRadius: '0.85rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
             {user?.user_metadata?.display_name && (
               <div style={{color: '#c4b5fd', fontWeight: 'bold'}}>👋 {user.user_metadata.display_name}</div>
             )}
@@ -120,23 +120,23 @@ export default function DashboardPage() {
             <div style={{color: '#ef4444', fontWeight: 'bold'}}>🌑 Void: {Number(stats.void_percentage) || 0}%</div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', fontSize: '0.85rem' }}>
             <button
               onClick={() => router.push('/quest-walker')}
-              style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '999px', padding: '0.75rem 1.25rem', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)' }}
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '999px', padding: '0.6rem 1rem', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', gap: '0.4rem', alignItems: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)', fontSize: 'inherit' }}
             >
-              <Swords size={18} /> Begin Today's Quest
+              <Swords size={16} /> Begin Today's Quest
             </button>
             <ThematicClock />
             <button
               onClick={() => setShowOnboarding(true)}
               aria-label="Add Quest"
-              style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#c4b5fd', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}
+              style={{ background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '50%', padding: '0.6rem', color: '#c4b5fd', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}
             >
-               <Plus size={20} />
+               <Plus size={18} />
             </button>
-            <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
-               <LogOut size={20} />
+            <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.6rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
+               <LogOut size={18} />
             </button>
         </div>
       </div>
