@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from 'next/link';
 import { useParallax } from "@/hooks/useParallax";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { TwinklingStars } from "./TwinklingStars";
 import { RealmModelPreviewWithFallback } from "@/components/three/RealmModelPreview";
 
 export function MapParallax() {
@@ -13,23 +14,20 @@ export function MapParallax() {
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0, position: 'absolute', inset: 0, overflow: 'hidden' }}>
       {/* Background starfield */}
       <motion.div
-        className="absolute inset-0 bg-[url('/stars.png')]"
-        style={{
-            position: 'absolute', inset: -100,
-            backgroundImage: 'radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)), radial-gradient(1.5px 1.5px at 90px 40px, #ffffff, rgba(0,0,0,0))',
-            backgroundSize: '150px 150px', opacity: 0.3
-        }}
+        style={{ position: 'absolute', inset: -100 }}
         animate={{
           x: mousePosition.x * -15,
           y: mousePosition.y * -15,
         }}
         transition={{ type: "spring", stiffness: 50, damping: 20 }}
-      />
-      {/* Nebula layer */}
+      >
+        <TwinklingStars count={70} />
+      </motion.div>
+      {/* Nebula layer — kept faint so the 3D ocean beneath stays readable */}
       <motion.div
         style={{
             position: 'absolute', inset: -100,
-            background: 'radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.15) 0%, transparent 40%), radial-gradient(circle at 70% 30%, rgba(168, 85, 247, 0.1) 0%, transparent 40%)'
+            background: 'radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.06) 0%, transparent 40%), radial-gradient(circle at 70% 30%, rgba(168, 85, 247, 0.05) 0%, transparent 40%)'
         }}
         animate={{
           x: mousePosition.x * -30,

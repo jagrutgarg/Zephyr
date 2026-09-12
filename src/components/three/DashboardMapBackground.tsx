@@ -21,17 +21,19 @@ export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { 
       <Canvas
         // The ocean base is a ~900-unit plane — sit further back than the
         // old island map's camera required to frame it comfortably.
-        camera={{ position: [0, 90, 220], fov: 30, near: 0.1, far: 2000 }}
+        // Higher, more top-down angle: at the old grazing angle the ocean
+        // surface reflected almost nothing and read as flat dark navy.
+        camera={{ position: [0, 260, 240], fov: 35, near: 0.1, far: 3000 }}
         style={{ width: "100%", height: "100%" }}
         gl={{ alpha: true }}
       >
-        <color attach="background" args={["#020617"]} />
-        <fog attach="fog" args={["#020617", 150, 520]} />
-        <ambientLight intensity={0.7} />
+        <color attach="background" args={["#0b1e3a"]} />
+        {/* No fog — the dark fog was swallowing most of the 900-unit ocean. */}
+        <hemisphereLight args={["#bfe3ff", "#0a2a4a", 1.4]} />
+        <ambientLight intensity={0.5} />
         {/* decay=0 keeps intensity independent of the model's real-world scale/distance */}
-        <pointLight position={[40, 80, 40]} intensity={3} decay={0} color="#8b5cf6" />
-        <pointLight position={[-60, 40, -40]} intensity={1.2} decay={0} color="#3b82f6" />
-        <directionalLight position={[30, 100, 60]} intensity={1.2} />
+        <directionalLight position={[120, 300, 180]} intensity={2.4} color="#ffe7b0" />
+        <pointLight position={[-60, 40, -40]} intensity={0.6} decay={0} color="#3b82f6" />
         <OceanLayer y={0} />
         <RealmTowers awakenedSlugs={awakenedSlugs} />
         <VoidVortex percentage={voidPercentage} />
@@ -40,8 +42,8 @@ export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { 
           enableDamping
           dampingFactor={0.08}
           target={[0, 0, 0]}
-          minDistance={60}
-          maxDistance={450}
+          minDistance={80}
+          maxDistance={700}
           minPolarAngle={0.1}
           maxPolarAngle={Math.PI / 2 - 0.03}
         />

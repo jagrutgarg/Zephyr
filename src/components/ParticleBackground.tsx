@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { TwinklingStars } from "./TwinklingStars";
 
 export default function ParticleBackground({ color = "#ffffff" }: { color?: string }) {
   const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; delay: number; duration: number }[]>([]);
@@ -24,10 +25,7 @@ export default function ParticleBackground({ color = "#ffffff" }: { color?: stri
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
       {/* Background Starfield Layer */}
-      <div
-        className="absolute inset-0 opacity-40 bg-[url('/stars.png')]"
-        style={{ position: 'absolute', inset: 0, opacity: 0.4, backgroundImage: 'radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 50px 160px, #ffffff, rgba(0,0,0,0)), radial-gradient(1.5px 1.5px at 90px 40px, #ffffff, rgba(0,0,0,0))', backgroundRepeat: 'repeat', backgroundSize: '200px 200px' }}
-      />
+      <TwinklingStars />
       {/* Floating Motes */}
       {particles.map((p) => (
         <motion.div

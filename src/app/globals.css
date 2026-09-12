@@ -447,3 +447,25 @@ body {
     font-size: 1.8rem !important;
   }
 }
+
+/* Twinkling starfield */
+.twinkle-star {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  animation-name: twinkle;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.8); }
+  50% { opacity: 0.95; transform: scale(1.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .twinkle-star {
+    animation: none;
+    opacity: 0.5;
+  }
+}
