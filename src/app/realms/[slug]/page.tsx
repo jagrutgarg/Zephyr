@@ -10,6 +10,8 @@ import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
 import { DIFF_MAPPING } from "@/lib/questDefaults";
+import { FocusSessionOverlay } from "@/components/FocusSessionOverlay";
+import { Swords } from "lucide-react";
 
 type Quest = {
   id: string;
@@ -21,6 +23,14 @@ type Quest = {
   due_date: string | null;
   is_completed: boolean;
 };
+
+type FocusTarget = {
+  questId: string;
+  questTitle: string;
+  resume?: { startedAt: string; durationMinutes: number };
+};
+
+type CrossRealmNotice = { type: "active" | "completed"; realmSlug: string; realmName: string; questTitle: string };
 
 export default function RealmPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
@@ -46,6 +56,31 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const [dueDate, setDueDate] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Focus Session state
+  const [focusTarget, setFocusTarget] = useState<FocusTarget | null>(null);
+  const [crossRealmNotice, setCrossRealmNotice] = useState<CrossRealmNotice | null>(null);
+
+  const refetchQuests = async (realmId: string) => {
+    const { data: questData } = await supabase
+      .from("quests")
+      .select("*")
+      .eq("realm_id", realmId)
+      .order("created_at", { ascending: false });
+    if (questData) setQuests(questData);
+  };
+
+  const applyCompletionRewards = (completedQuest: Quest, completion: any, realmData: any) => {
+    addShards(completedQuest.shard_value);
+    reduceVoid(2);
+    gainRealmXP(realmData.id, completedQuest.xp_value, completion.leveled_up, completion.new_level);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("lastCompletedRealmSlug", realmData.slug);
+    }
+    if (completion.leveled_up) {
+      alert(`The ${realmData.guardian} smiles! ${realmData.name} grew to level ${completion.new_level}!`);
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -53,7 +88,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         router.push("/login");
         return;
       }
-      
+
       // Fetch Realm
       const { data: realmData } = await supabase.from("realms").select("*").eq("slug", slug).single();
       if (!realmData) {
@@ -68,11 +103,40 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         .select("*")
         .eq("realm_id", realmData.id)
         .order("created_at", { ascending: false });
-        
+
       if (questData) setQuests(questData);
       setLoading(false);
+
+      // Resume/surface any focus session — active or freshly completed —
+      // wherever it may belong (this realm, another realm, or nowhere).
+      const { data: session } = await supabase.rpc("get_active_focus_session");
+      if (!session || session.status === "none") return;
+
+      if (session.status === "completed") {
+        if (session.realm_slug === slug) {
+          const finishedQuest = (questData || []).find((q: Quest) => q.id === session.quest_id);
+          await refetchQuests(realmData.id);
+          if (finishedQuest) applyCompletionRewards(finishedQuest, session.completion, realmData);
+        } else {
+          setCrossRealmNotice({ type: "completed", realmSlug: session.realm_slug, realmName: session.realm_name, questTitle: session.quest_title });
+        }
+        return;
+      }
+
+      if (session.status === "active") {
+        if (session.realm_slug === slug) {
+          setFocusTarget({
+            questId: session.quest_id,
+            questTitle: session.quest_title,
+            resume: { startedAt: session.started_at, durationMinutes: session.duration_minutes },
+          });
+        } else {
+          setCrossRealmNotice({ type: "active", realmSlug: session.realm_slug, realmName: session.realm_name, questTitle: session.quest_title });
+        }
+      }
     }
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, router, supabase]);
 
   const openModal = (q?: Quest) => {
@@ -202,7 +266,23 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
          <button onClick={() => router.push('/dashboard')} className="mb-6 text-sm flex items-center gap-2" style={{color: realm?.accent_color}}>
            ← Back to World Map
          </button>
-         
+
+         {crossRealmNotice && (
+             <div style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '12px', padding: '0.8rem 1.2rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                 <span style={{ fontSize: '0.9rem' }}>
+                     {crossRealmNotice.type === 'completed'
+                        ? `🏆 "${crossRealmNotice.questTitle}" completed in ${crossRealmNotice.realmName}!`
+                        : `A focus session for "${crossRealmNotice.questTitle}" is running in ${crossRealmNotice.realmName}.`}
+                 </span>
+                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                     <button onClick={() => router.push(`/realms/${crossRealmNotice.realmSlug}`)} style={{ background: 'transparent', border: 'none', color: '#c4b5fd', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                         {crossRealmNotice.type === 'active' ? 'Go there' : 'View'}
+                     </button>
+                     <button onClick={() => setCrossRealmNotice(null)} aria-label="Dismiss" style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={16} /></button>
+                 </div>
+             </div>
+         )}
+
          <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-4xl font-bold mb-2">{realm?.name}</h1>
@@ -240,7 +320,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                          <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', border: `1px solid ${realm?.accent_color}60`, borderRadius: '16px', padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: `0 4px 15px ${realm?.accent_color}10` }}>
                              
                              <div className="flex-1 flex gap-4 items-center">
-                                 <button onClick={() => handleComplete(q.id)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${realm?.accent_color}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: realm?.accent_color, transition: 'all 0.2s' }}>
+                                 <button onClick={() => handleComplete(q.id)} title="Mark Done Instantly" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${realm?.accent_color}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: realm?.accent_color, transition: 'all 0.2s', flexShrink: 0 }}>
                                      <Check size={16} style={{opacity: 0}} />
                                  </button>
                                  <div>
@@ -266,7 +346,13 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                  </div>
                              </div>
 
-                             <div className="flex gap-2">
+                             <div className="flex gap-2" style={{ alignItems: 'center' }}>
+                                 <button
+                                    onClick={() => setFocusTarget({ questId: q.id, questTitle: q.title })}
+                                    style={{ background: realm?.accent_color, color: 'black', border: 'none', borderRadius: '10px', padding: '0.5rem 0.9rem', fontWeight: 'bold', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
+                                 >
+                                    <Swords size={14} /> Begin Quest
+                                 </button>
                                  {q.due_date && (
                                      <button 
                                         onClick={() => handleAddToCalendar({ title: q.title, description: q.description, dueDate: q.due_date! })} 
@@ -356,6 +442,27 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
             </div>
         )}
       </AnimatePresence>
+
+      {focusTarget && realm && (
+          <FocusSessionOverlay
+              questId={focusTarget.questId}
+              questTitle={focusTarget.questTitle}
+              realmName={realm.name}
+              guardian={realm.guardian}
+              accentColor={realm.accent_color}
+              resume={focusTarget.resume}
+              onCancelled={() => setFocusTarget(null)}
+              onError={(message) => { alert(message); setFocusTarget(null); }}
+              onCompleted={async (completion) => {
+                  const finishedQuest = quests.find(q => q.id === focusTarget.questId);
+                  setFocusTarget(null);
+                  await refetchQuests(realm.id);
+                  if (completion && finishedQuest) {
+                      applyCompletionRewards(finishedQuest, completion, realm);
+                  }
+              }}
+          />
+      )}
     </div>
   );
 }
