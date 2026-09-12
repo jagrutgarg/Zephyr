@@ -304,13 +304,18 @@ export default function QuestWalkerPage() {
             />
 
             {step === "focus" && (
-              <div style={{ position: "absolute", top: "1.5rem", left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
-                <div style={{ color: realm.themeColor, fontWeight: "bold", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  {realm.name} · {attribute}
+              <>
+                <div style={{ position: "absolute", top: "1.5rem", left: "50%", transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none" }}>
+                  <div style={{ color: realm.themeColor, fontWeight: "bold", fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                    {realm.name} · {attribute}
+                  </div>
+                  <div style={{ fontSize: "2.5rem", fontWeight: "bold", fontVariantNumeric: "tabular-nums" }}>{mmss}</div>
+                  <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>{task}</div>
                 </div>
-                <div style={{ fontSize: "2.5rem", fontWeight: "bold", fontVariantNumeric: "tabular-nums" }}>{mmss}</div>
-                <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>{task}</div>
-              </div>
+                <div style={{ position: "absolute", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)", color: "#64748b", fontSize: "0.8rem", pointerEvents: "none" }}>
+                  Drag to look around · Scroll to zoom
+                </div>
+              </>
             )}
 
             {error && step === "focus" && (

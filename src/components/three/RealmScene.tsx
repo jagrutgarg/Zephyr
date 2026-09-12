@@ -2,7 +2,7 @@
 
 import { Suspense, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Sparkles } from "@react-three/drei";
+import { Sparkles, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { OrbitCharacter } from "./OrbitCharacter";
 import { GltfModel } from "./GltfModel";
@@ -85,6 +85,18 @@ export function RealmScene({
         <circleGeometry args={[4.5, 48]} />
         <meshStandardMaterial color="#0f172a" roughness={0.8} />
       </mesh>
+
+      {/* Free look: drag to rotate, scroll/pinch to zoom, right-click/two-finger drag to pan */}
+      <OrbitControls
+        makeDefault
+        enableDamping
+        dampingFactor={0.08}
+        target={[0, 0, 0]}
+        minDistance={2.5}
+        maxDistance={12}
+        minPolarAngle={0.15}
+        maxPolarAngle={Math.PI / 2 - 0.05}
+      />
     </Canvas>
   );
 }
