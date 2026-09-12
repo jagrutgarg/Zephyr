@@ -260,7 +260,7 @@ export default function DashboardPage() {
       })}
 
       <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1, color: '#64748b', fontSize: '0.8rem', pointerEvents: 'none' }}>
-        Drag to explore the map · Scroll to zoom
+        Drag to explore the map · Scroll to zoom · ← → to tour landmarks
       </div>
 
       {/* Empty-map prompt */}

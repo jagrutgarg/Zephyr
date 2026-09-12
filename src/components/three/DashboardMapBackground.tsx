@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { RealmTowers } from "./RealmTowers";
 import { VoidVortex } from "./VoidVortex";
+import { KeyboardMapTour } from "./KeyboardMapTour";
 
 /**
  * Renders /models/environment/aetheria_map.glb as the World Map's 3D
@@ -15,9 +17,13 @@ import { VoidVortex } from "./VoidVortex";
  * right-click/two-finger drag to pan) let you move around the map — the
  * 2D Realm nodes stay on top and still intercept their own clicks first,
  * so dragging empty space orbits the camera without breaking navigation.
+ * Arrow keys also step the camera through a guided tour of the map's
+ * landmarks, starting from the centered overview (see KeyboardMapTour).
  * Renders nothing if the model is missing.
  */
 export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { awakenedSlugs: Set<string>; voidPercentage?: number }) {
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
       <Canvas
@@ -43,12 +49,14 @@ export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { 
         </ModelErrorBoundary>
         <RealmTowers awakenedSlugs={awakenedSlugs} />
         <VoidVortex percentage={voidPercentage} />
+        <KeyboardMapTour controlsRef={controlsRef} />
         <OrbitControls
+          ref={controlsRef}
           makeDefault
           enableDamping
           dampingFactor={0.08}
           target={[0, 0, 0]}
-          minDistance={40}
+          minDistance={20}
           maxDistance={220}
           minPolarAngle={0.1}
           maxPolarAngle={Math.PI / 2 - 0.03}
