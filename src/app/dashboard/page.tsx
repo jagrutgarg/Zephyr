@@ -59,7 +59,17 @@ export default function DashboardPage() {
         router.push("/login");
         return;
       }
-      setUser(user);
+
+      // Pick up the display name chosen at signup if email confirmation delayed saving it
+      const pendingDisplayName = typeof window !== "undefined" ? sessionStorage.getItem("pendingDisplayName") : null;
+      if (pendingDisplayName && !user.user_metadata?.display_name) {
+        await supabase.auth.updateUser({ data: { display_name: pendingDisplayName } });
+        sessionStorage.removeItem("pendingDisplayName");
+        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+        if (refreshedUser) setUser(refreshedUser);
+      } else {
+        setUser(user);
+      }
 
       // Load global stats
       const { data: statsData } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single();
@@ -123,6 +133,9 @@ export default function DashboardPage() {
       {/* HUD (Heads Up Display) */}
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '1rem', background: 'rgba(15,23,42,0.8)', padding: '0.5rem 1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {user?.user_metadata?.display_name && (
+              <div style={{color: '#c4b5fd', fontWeight: 'bold'}}>👋 {user.user_metadata.display_name}</div>
+            )}
             <div style={{color: 'white', fontWeight: 'bold'}}>✨ Rank: {aetherRank || 1}</div>
             <div style={{color: '#34d399', fontWeight: 'bold'}}>💎 Shards: {stats.total_shards}</div>
             <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {stats.streak_count}</div>

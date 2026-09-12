@@ -13,7 +13,6 @@ export default function SignupPage() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,18 +23,19 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Post-signup "What should we call you?" step
+  const [step, setStep] = useState<"form" | "naming" | "pending">("form");
+  const [hasSession, setHasSession] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [namingLoading, setNamingLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    if (!firstName || !lastName || !username || !gender || !email || !password || !confirmPassword) {
+    if (!firstName || !lastName || !gender || !email || !password || !confirmPassword) {
       setError("Please fill in all required fields.");
-      return;
-    }
-
-    if (username.length < 3) {
-      setError("Username must be at least 3 characters long.");
       return;
     }
 
@@ -70,7 +70,6 @@ export default function SignupPage() {
           data: {
             first_name: firstName,
             last_name: lastName,
-            username: username,
             gender: gender,
           },
         },
@@ -82,24 +81,33 @@ export default function SignupPage() {
         return;
       }
 
-      if (data.session) {
-        setSuccess("Account created successfully! Redirecting to dashboard...");
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1200);
-      } else if (data.user && !data.session) {
-        setSuccess("A sigil has been sent to your inbox. Confirm it to awaken.");
-      } else {
-        setSuccess("Account created! Redirecting to login...");
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
-      }
+      setHasSession(!!data.session);
+      setDisplayName(firstName);
+      setStep("naming");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
       setError(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNamingLoading(true);
+    const name = displayName.trim() || firstName;
+
+    if (hasSession) {
+      await supabase.auth.updateUser({ data: { display_name: name } });
+      setNamingLoading(false);
+      router.push("/dashboard");
+    } else {
+      // Email confirmation pending — no session yet to attach metadata to.
+      // Dashboard picks this up and saves it once the user confirms and logs in.
+      sessionStorage.setItem("pendingDisplayName", name);
+      setNamingLoading(false);
+      setSuccess("A sigil has been sent to your inbox. Confirm it to awaken.");
+      setStep("pending");
     }
   };
 
@@ -193,6 +201,7 @@ export default function SignupPage() {
           </div>
         )}
 
+        {step === "form" && (
         <form onSubmit={handleSubmit}>
           {/* First Name & Last Name Row */}
           <div className="form-row">
@@ -260,46 +269,6 @@ export default function SignupPage() {
                   disabled={loading}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Username Field */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">
-              Username
-            </label>
-            <div className="input-wrapper">
-              <span className="input-icon">
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-              </span>
-              <input
-                id="username"
-                type="text"
-                className="form-input"
-                placeholder="johndoe99"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
-              />
             </div>
           </div>
 
@@ -522,7 +491,58 @@ export default function SignupPage() {
             )}
           </button>
         </form>
+        )}
 
+        {step === "naming" && (
+          <motion.form
+            onSubmit={handleSaveName}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="form-group">
+              <label className="form-label" htmlFor="displayName">
+                What should we call you?
+              </label>
+              <div className="input-wrapper">
+                <input
+                  id="displayName"
+                  type="text"
+                  className="form-input"
+                  style={{ paddingLeft: "1rem" }}
+                  placeholder={firstName || "Guardian"}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={namingLoading}
+                  autoFocus
+                />
+              </div>
+              <p className="auth-subtitle" style={{ marginTop: "0.5rem" }}>
+                This is the name Aetheria will greet you by. You can change it later.
+              </p>
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={namingLoading}>
+              {namingLoading ? (
+                <>
+                  <div className="spinner" />
+                  <span>Sealing your name...</span>
+                </>
+              ) : (
+                <span>That&apos;s Me</span>
+              )}
+            </button>
+          </motion.form>
+        )}
+
+        {step === "pending" && (
+          <div className="auth-subtitle" style={{ textAlign: "center", padding: "1rem 0" }}>
+            Check your inbox and confirm your sigil — your name has been remembered for when you awaken.
+          </div>
+        )}
+
+        {step === "form" && (
+        <>
         <div className="divider">
           <span>Or register with</span>
         </div>
@@ -535,6 +555,8 @@ export default function SignupPage() {
             Awaken with GitHub
           </button>
         </div>
+        </>
+        )}
 
         <div className="auth-footer">
           Already a Guardian?
