@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
+import { RealmTowers } from "./RealmTowers";
 
 /**
  * Renders /models/environment/aetheria_map.glb as the World Map's 3D
@@ -39,6 +40,7 @@ export function DashboardMapBackground() {
             <AetheriaRevealIntro />
           </Suspense>
         </ModelErrorBoundary>
+        <RealmTowers />
         <OrbitControls
           makeDefault
           enableDamping
