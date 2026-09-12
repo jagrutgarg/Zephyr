@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { GltfModel } from "./GltfModel";
+import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
 /**
@@ -30,7 +30,7 @@ export function DashboardMapBackground() {
         <pointLight position={[-6, 4, -4]} intensity={20} color="#3b82f6" />
         <ModelErrorBoundary fallback={null}>
           <Suspense fallback={null}>
-            <GltfModel path="/models/environment/aetheria_map.glb" />
+            <AetheriaRevealIntro />
           </Suspense>
         </ModelErrorBoundary>
         <OrbitControls

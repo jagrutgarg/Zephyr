@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { MapParallax, RealmNode, VoidNode } from "@/components/MapComponents";
-import { PlayerCharacter } from "@/components/PlayerCharacter";
+import { MapParallax, RealmNode } from "@/components/MapComponents";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { LogOut, Plus } from "lucide-react";
 import { useGameStore } from "@/store/useGameStore";
@@ -22,8 +21,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [activeRealmSlugs, setActiveRealmSlugs] = useState<Set<string>>(new Set());
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [characterTarget, setCharacterTarget] = useState<{ x: number; y: number } | null>(null);
-  const [isWalking, setIsWalking] = useState(false);
 
   // Zustand Score Hook
   const { stats, realmProgress, setStats, setRealmProgress } = useGameStore();
@@ -83,19 +80,6 @@ export default function DashboardPage() {
         setShowOnboarding(true);
       }
 
-      // Character: walk to the realm of the most recently completed quest, else rest at first active realm
-      const lastCompletedSlug = typeof window !== "undefined" ? sessionStorage.getItem("lastCompletedRealmSlug") : null;
-      const homeSlug = lastCompletedSlug && slugs.has(lastCompletedSlug) ? lastCompletedSlug : Array.from(slugs)[0];
-      const homeRealm = REALMS.find(r => r.id === homeSlug);
-      if (homeRealm) {
-        setCharacterTarget({ x: homeRealm.x, y: homeRealm.y });
-        if (lastCompletedSlug) {
-          setIsWalking(true);
-          sessionStorage.removeItem("lastCompletedRealmSlug");
-          setTimeout(() => setIsWalking(false), 1200);
-        }
-      }
-
       setLoading(false);
     }
     loadData();
@@ -133,6 +117,7 @@ export default function DashboardPage() {
             <div style={{color: 'white', fontWeight: 'bold'}}>✨ Rank: {aetherRank || 1}</div>
             <div style={{color: '#34d399', fontWeight: 'bold'}}>💎 Shards: {stats.total_shards}</div>
             <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {stats.streak_count}</div>
+            <div style={{color: '#ef4444', fontWeight: 'bold'}}>🌑 Void: {Number(stats.void_percentage) || 0}%</div>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -156,9 +141,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Center Hub / Void */}
-      <VoidNode percentage={Number(stats.void_percentage) || 0} />
-
       {/* Floating Islands — only Realms with at least one Quest manifest a Tower */}
       {activeRealms.map(realm => {
          const progressObj = Object.values(realmProgress).find(p => p.realm_id === realm.id || (p as any).slug === realm.id);
@@ -166,9 +148,6 @@ export default function DashboardPage() {
 
          return <RealmNode key={realm.id} {...realm} level={nodeLevel} />
       })}
-
-      {/* Player Character */}
-      {characterTarget && <PlayerCharacter x={characterTarget.x} y={characterTarget.y} isWalking={isWalking} />}
 
       <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1, color: '#64748b', fontSize: '0.8rem', pointerEvents: 'none' }}>
         Drag to explore the map · Scroll to zoom

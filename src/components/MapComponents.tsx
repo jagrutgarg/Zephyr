@@ -49,9 +49,8 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: {
         className="realm-node-wrapper"
         style={{
             position: 'absolute', left: `${x}%`, top: `${y}%`,
-            width: '120px', height: '120px', marginLeft: '-60px', marginTop: '-60px',
+            width: '140px', height: '140px', marginLeft: '-70px', marginTop: '-70px',
             transform: `scale(${depthScale})`,
-            perspective: 800
         }}
         animate={{
             y: [0, -10, 0]
@@ -63,29 +62,25 @@ export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: {
             delay: Math.random() * 2
         }}
       >
-        <Link href={`/realms/${id}`}>
+        <Link href={`/realms/${id}`} style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', cursor: 'pointer' }}>
           <motion.div
             className="realm-card-inner"
             style={{
-                width: '100%', height: '100%', borderRadius: '50%',
-                background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)',
-                border: `2px solid ${themeColor}`,
+                width: '100%', height: '100%',
                 display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', alignItems: 'center',
-                boxShadow: `0 8px 20px rgba(0,0,0,0.5), 0 0 20px ${themeColor}40`,
-                textDecoration: 'none', cursor: 'pointer',
-                transformStyle: 'preserve-3d'
+                justifyContent: 'flex-end', alignItems: 'center',
+                position: 'relative'
             }}
-            whileHover={{ scale: 1.08, rotateX: -10, rotateY: 10, boxShadow: `0 16px 30px rgba(0,0,0,0.6), 0 0 40px ${themeColor}80` }}
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
           >
-             {/* 3D preview if /models/realms/<id>.glb exists, silently absent otherwise */}
-             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', overflow: 'hidden' }}>
+             {/* The Realm's 3D tower model — /models/realms/<id>.glb — is the whole visual now, no 2D card chrome */}
+             <div style={{ position: 'absolute', inset: 0 }}>
                 <RealmModelPreviewWithFallback realmSlug={id} fallback={null} />
              </div>
-             <div style={{ position: 'relative', fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px', textShadow: '0 2px 6px rgba(0,0,0,0.8)' }}>{name}</div>
-             <div style={{ position: 'relative', fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '4px', textShadow: '0 2px 6px rgba(0,0,0,0.8)' }}>{guardian}</div>
-             <div style={{ position: 'absolute', bottom: '-15px', background: themeColor, color: 'black', borderRadius: '12px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
+             <div style={{ position: 'relative', fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>{name}</div>
+             <div style={{ position: 'relative', fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '2px', textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>{guardian}</div>
+             <div style={{ position: 'relative', marginTop: '4px', background: themeColor, color: 'black', borderRadius: '12px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
           </motion.div>
         </Link>
       </motion.div>

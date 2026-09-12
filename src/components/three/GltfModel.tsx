@@ -20,7 +20,10 @@ export function GltfModel({
   position?: [number, number, number];
   rotation?: [number, number, number];
 }) {
-  const { scene } = useGLTF(path);
+  // "/draco/" points at the self-hosted decoder in public/draco — needed for
+  // any .glb exported with Draco mesh compression (e.g. the environment map);
+  // harmless no-op for plain, uncompressed .glb files.
+  const { scene } = useGLTF(path, "/draco/");
   const cloned = useCloneScene(scene);
 
   return (

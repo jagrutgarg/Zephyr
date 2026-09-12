@@ -39,6 +39,10 @@ yarn-error.log*
 # supabase
 /supabase/.temp
 
+# python (scripts/ asset-generation tooling)
+__pycache__/
+*.pyc
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
