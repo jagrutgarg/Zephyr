@@ -9,9 +9,11 @@ import ParticleBackground from "@/components/ParticleBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
-import { DIFF_MAPPING } from "@/lib/questDefaults";
+import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule } from "@/lib/questDefaults";
 import { FocusSessionOverlay } from "@/components/FocusSessionOverlay";
-import { Swords } from "lucide-react";
+import { GuardianToast } from "@/components/GuardianToast";
+import { pickGuardianLine } from "@/lib/guardianLines";
+import { Swords, Repeat } from "lucide-react";
 
 type Quest = {
   id: string;
@@ -22,6 +24,7 @@ type Quest = {
   shard_value: number;
   due_date: string | null;
   is_completed: boolean;
+  repeat_rule: string;
 };
 
 type FocusTarget = {
@@ -54,11 +57,14 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState<"easy"|"normal"|"hard">("normal");
   const [dueDate, setDueDate] = useState("");
+  const [repeatRule, setRepeatRule] = useState("none");
+  const [repeatDays, setRepeatDays] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
 
   // Focus Session state
   const [focusTarget, setFocusTarget] = useState<FocusTarget | null>(null);
   const [crossRealmNotice, setCrossRealmNotice] = useState<CrossRealmNotice | null>(null);
+  const [guardianToast, setGuardianToast] = useState<string | null>(null);
 
   const refetchQuests = async (realmId: string) => {
     const { data: questData } = await supabase
@@ -70,14 +76,18 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   };
 
   const applyCompletionRewards = (completedQuest: Quest, completion: any, realmData: any) => {
-    addShards(completedQuest.shard_value);
+    // The server may reduce these below the quest's nominal reward under high Void.
+    addShards(completion.awarded_shards ?? completedQuest.shard_value);
     reduceVoid(2);
-    gainRealmXP(realmData.id, completedQuest.xp_value, completion.leveled_up, completion.new_level);
+    gainRealmXP(realmData.id, completion.awarded_xp ?? completedQuest.xp_value, completion.leveled_up, completion.new_level);
     if (typeof window !== "undefined") {
       sessionStorage.setItem("lastCompletedRealmSlug", realmData.slug);
     }
+    setGuardianToast(pickGuardianLine(realmData.guardian));
     if (completion.leveled_up) {
       alert(`The ${realmData.guardian} smiles! ${realmData.name} grew to level ${completion.new_level}!`);
+    } else if (completion.void_penalty_pct > 0) {
+      alert(`The Void dampened your reward by ${Math.round(completion.void_penalty_pct)}%. Push it back to earn in full.`);
     }
   };
 
@@ -146,15 +156,28 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setDescription(q.description || "");
         setDifficulty(q.difficulty);
         setDueDate(q.due_date ? q.due_date.split('T')[0] : "");
+        if (q.repeat_rule?.startsWith("weekly:")) {
+          setRepeatRule("weekly");
+          setRepeatDays(q.repeat_rule.slice(7).split(","));
+        } else {
+          setRepeatRule(q.repeat_rule || "none");
+          setRepeatDays([]);
+        }
     } else {
         setEditingQuest(null);
         setTitle("");
         setDescription("");
         setDifficulty("normal");
         setDueDate("");
+        setRepeatRule("none");
+        setRepeatDays([]);
     }
     setErrorMsg("");
     setIsModalOpen(true);
+  };
+
+  const toggleRepeatDay = (day: string) => {
+    setRepeatDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
   };
 
   const handleSaveQuest = async (e: React.FormEvent) => {
@@ -163,9 +186,15 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setErrorMsg("Your quest needs a title.");
         return;
     }
-    
+    if (repeatRule === "weekly" && repeatDays.length === 0) {
+        setErrorMsg("Pick at least one day for a weekly repeat.");
+        return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || !realm) return;
+
+    const finalRepeatRule = repeatRule === "weekly" ? `weekly:${repeatDays.join(",")}` : repeatRule;
 
     const payload = {
         user_id: user.id,
@@ -176,6 +205,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         xp_value: DIFF_MAPPING[difficulty].xp,
         shard_value: DIFF_MAPPING[difficulty].shard,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        repeat_rule: finalRepeatRule,
     };
 
     if (editingQuest) {
@@ -214,30 +244,19 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const handleComplete = async (questId: string) => {
       // Optimistic visual
       setQuests(prev => prev.map(q => q.id === questId ? { ...q, is_completed: true } : q));
-      
+
       // Server update
       const { data, error } = await supabase.rpc('complete_quest', { p_quest_id: questId });
-      
+
       if (error) {
           alert("Failed to complete quest.");
           // Rollback
           setQuests(prev => prev.map(q => q.id === questId ? { ...q, is_completed: false } : q));
       } else {
-          // data contains {current_xp, new_level, leveled_up, streak}
-          // Update game store
           const q = quests.find(q => q.id === questId);
-          if (q) {
-             addShards(q.shard_value);
-             reduceVoid(2);
-             // Streak logic is handled simply in the store if we want, or we just rely on DB fetch later
-             gainRealmXP(realm.id, q.xp_value, data.leveled_up, data.new_level);
-             if (typeof window !== "undefined") {
-                 sessionStorage.setItem("lastCompletedRealmSlug", slug);
-             }
-             if (data.leveled_up) {
-                 alert(`The ${realm.guardian} smiles! ${realm.name} grew to level ${data.new_level}!`);
-             }
-          }
+          if (q) applyCompletionRewards(q, data, realm);
+          // Picks up a freshly spawned next occurrence if this was a recurring quest.
+          if (realm) await refetchQuests(realm.id);
       }
   };
 
@@ -342,6 +361,11 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                                {new Date(q.due_date) < new Date() && " (Overdue)"}
                                            </span>
                                         )}
+                                        {q.repeat_rule && q.repeat_rule !== 'none' && (
+                                           <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(139,92,246,0.2)', color: '#c4b5fd', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                               <Repeat size={12} /> {describeRepeatRule(q.repeat_rule)}
+                                           </span>
+                                        )}
                                     </div>
                                  </div>
                              </div>
@@ -434,6 +458,33 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                 <input type="date" className="form-input mt-1" style={{paddingLeft: '1rem'}} value={dueDate} onChange={e => setDueDate(e.target.value)} />
                             </div>
                         </div>
+                        <div className="form-group mb-0">
+                            <label className="form-label">Repeats</label>
+                            <select className="form-input form-select" style={{paddingLeft: '1rem'}} value={repeatRule} onChange={e => setRepeatRule(e.target.value)}>
+                                <option value="none">Does not repeat</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly (choose days)</option>
+                            </select>
+                            {repeatRule === 'weekly' && (
+                                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', flexWrap: 'wrap' }}>
+                                    {WEEKDAYS.map(d => (
+                                        <button
+                                            key={d.key}
+                                            type="button"
+                                            onClick={() => toggleRepeatDay(d.key)}
+                                            style={{
+                                                padding: '0.35rem 0.6rem', borderRadius: '8px', fontSize: '0.75rem', cursor: 'pointer',
+                                                border: repeatDays.includes(d.key) ? `2px solid ${realm?.accent_color}` : '1px solid rgba(255,255,255,0.2)',
+                                                background: repeatDays.includes(d.key) ? `${realm?.accent_color}25` : 'transparent',
+                                                color: 'white',
+                                            }}
+                                        >
+                                            {d.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <button type="submit" className="btn-primary mt-4" style={{ background: realm?.accent_color, color: 'black' }}>
                             {editingQuest ? 'Reshape Quest' : 'Bind Quest to Realm'}
                         </button>
@@ -462,6 +513,10 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                   }
               }}
           />
+      )}
+
+      {guardianToast && realm && (
+          <GuardianToast guardian={realm.guardian} line={guardianToast} accentColor={realm.accent_color} onDismiss={() => setGuardianToast(null)} />
       )}
     </div>
   );

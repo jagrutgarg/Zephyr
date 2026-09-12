@@ -9,6 +9,7 @@ import { REALMS, findRealmBySlug, type RealmDef } from "@/lib/realms";
 import { DIFF_MAPPING, type Difficulty } from "@/lib/questDefaults";
 import { RealmScene } from "@/components/three/RealmScene";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
+import { pickGuardianLine } from "@/lib/guardianLines";
 
 type Step = "greeting" | "input" | "classifying" | "focus" | "celebrating";
 
@@ -41,7 +42,7 @@ export default function QuestWalkerPage() {
   const [startTs, setStartTs] = useState<number>(0);
   const [durationMs, setDurationMs] = useState<number>(0);
   const [remainingSec, setRemainingSec] = useState<number>(0);
-  const [celebrationData, setCelebrationData] = useState<{ xp: number; shards: number; leveledUp: boolean; newLevel?: number } | null>(null);
+  const [celebrationData, setCelebrationData] = useState<{ xp: number; shards: number; leveledUp: boolean; newLevel?: number; guardianLine: string } | null>(null);
   const [error, setError] = useState("");
 
   const completingRef = useRef(false);
@@ -162,16 +163,20 @@ export default function QuestWalkerPage() {
       return;
     }
 
-    addShards(payload.shard_value);
+    const awardedXp = completion.awarded_xp ?? payload.xp_value;
+    const awardedShards = completion.awarded_shards ?? payload.shard_value;
+
+    addShards(awardedShards);
     reduceVoid(2);
-    gainRealmXP(realmRow.id, payload.xp_value, completion.leveled_up, completion.new_level);
+    gainRealmXP(realmRow.id, awardedXp, completion.leveled_up, completion.new_level);
     sessionStorage.setItem("lastCompletedRealmSlug", realm.id);
 
     setCelebrationData({
-      xp: payload.xp_value,
-      shards: payload.shard_value,
+      xp: awardedXp,
+      shards: awardedShards,
       leveledUp: completion.leveled_up,
       newLevel: completion.new_level,
+      guardianLine: pickGuardianLine(realmRow.guardian),
     });
     setStep("celebrating");
   };
@@ -331,6 +336,7 @@ export default function QuestWalkerPage() {
                 shardsGained={celebrationData.shards}
                 leveledUp={celebrationData.leveledUp}
                 newLevel={celebrationData.newLevel}
+                guardianLine={celebrationData.guardianLine}
                 onContinue={() => router.push("/dashboard")}
               />
             )}

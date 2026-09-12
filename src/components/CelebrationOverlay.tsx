@@ -8,6 +8,7 @@ export function CelebrationOverlay({
   shardsGained,
   leveledUp,
   newLevel,
+  guardianLine,
   onContinue,
 }: {
   realmName: string;
@@ -15,6 +16,7 @@ export function CelebrationOverlay({
   shardsGained: number;
   leveledUp: boolean;
   newLevel?: number;
+  guardianLine?: string;
   onContinue: () => void;
 }) {
   return (
@@ -72,6 +74,10 @@ export function CelebrationOverlay({
           >
             ✨ Realm reached Level {newLevel}!
           </motion.div>
+        )}
+
+        {guardianLine && (
+          <p style={{ color: "#cbd5e1", fontStyle: "italic", fontSize: "0.85rem", marginBottom: "1.5rem" }}>&ldquo;{guardianLine}&rdquo;</p>
         )}
 
         <button
