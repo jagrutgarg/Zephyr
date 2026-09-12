@@ -5,6 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { MapParallax, RealmNode, VoidNode } from "@/components/MapComponents";
+import { LogOut } from "lucide-react";
+
+const REALMS = [
+  { id: 'enchanted_woods', name: 'The Enchanted Woods', guardian: 'The Fairy Keeper', themeColor: '#10b981', x: 20, y: 30 },
+  { id: 'celestial_kingdom', name: 'The Celestial Kingdom', guardian: 'The Royal Dragon', themeColor: '#fbbf24', x: 50, y: 15 },
+  { id: 'astral_library', name: 'The Astral Library', guardian: 'The Archivist', themeColor: '#3b82f6', x: 80, y: 30 },
+  { id: 'neo_mystica', name: 'Neo-Mystica', guardian: 'AX-7 Ancient Machine', themeColor: '#8b5cf6', x: 85, y: 65 },
+  { id: 'xyran_frontier', name: 'Xyran Frontier', guardian: 'The Star Wanderer', themeColor: '#6366f1', x: 60, y: 85 },
+  { id: 'timeless_realm', name: 'The Timeless Realm', guardian: 'The Chronomancer', themeColor: '#14b8a6', x: 30, y: 85 },
+  { id: 'dreaming_isles', name: 'The Dreaming Isles', guardian: 'The Dream Weaver', themeColor: '#f472b6', x: 10, y: 60 },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -12,16 +24,21 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Stats mock for MVP
+  const voidPercentage = 15;
+  const aetherRank = 12;
+  const shards = 450;
+  const streak = 4;
+
   useEffect(() => {
     async function getUser() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        // Redirect to login if user is not authenticated
         router.push("/login");
       } else {
         setUser(user);
+        setLoading(false);
       }
-      setLoading(false);
     }
     getUser();
   }, [router, supabase]);
@@ -36,69 +53,36 @@ export default function DashboardPage() {
       <div className="auth-container">
         <div className="auth-card" style={{ textAlign: "center", padding: "3rem" }}>
           <div className="spinner" style={{ width: "32px", height: "32px", margin: "0 auto 1rem" }} />
-          <p className="auth-subtitle">Loading your profile...</p>
+          <p className="auth-subtitle">Loading Aetheria map...</p>
         </div>
       </div>
     );
   }
 
-  const firstName = user?.user_metadata?.first_name || "User";
-  const lastName = user?.user_metadata?.last_name || "";
-  const username = user?.user_metadata?.username;
-  const avatarLetter = firstName ? firstName.charAt(0).toUpperCase() : "Z";
-
   return (
-    <div className="auth-container">
-      <div className="auth-background-shapes">
-        <div className="shape-1" />
-        <div className="shape-2" />
+    <div className="relative w-full h-[100vh]" style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', background: '#020617' }}>
+      <MapParallax />
+      
+      {/* HUD (Heads Up Display) */}
+      <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', background: 'rgba(15,23,42,0.8)', padding: '0.5rem 1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{color: 'white', fontWeight: 'bold'}}>✨ Rank: {aetherRank}</div>
+            <div style={{color: '#34d399', fontWeight: 'bold'}}>💎 Shards: {shards}</div>
+            <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {streak}</div>
+        </div>
+        
+        <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
+           <LogOut size={20} />
+        </button>
       </div>
 
-      <div className="dashboard-card">
-        <div className="user-avatar">{avatarLetter}</div>
-        <h1 className="auth-title">Welcome back, {firstName} {lastName}!</h1>
-        <p className="auth-subtitle" style={{ marginBottom: "1.5rem" }}>
-          Logged in as <strong>{user?.email}</strong> {username ? `(@${username})` : ""}
-        </p>
+      {/* Center Hub / Void */}
+      <VoidNode percentage={voidPercentage} />
 
-        <div style={{
-          background: "rgba(255, 255, 255, 0.05)",
-          padding: "1rem 1.5rem",
-          borderRadius: "0.75rem",
-          marginBottom: "2rem",
-          textAlign: "left",
-          border: "1px solid rgba(255, 255, 255, 0.1)"
-        }}>
-          <p style={{ color: "#a1a1aa", fontSize: "0.875rem", marginBottom: "0.5rem" }}>
-            <strong>User ID:</strong> {user?.id}
-          </p>
-          <p style={{ color: "#a1a1aa", fontSize: "0.875rem", marginBottom: "0.5rem" }}>
-            <strong>Email Confirmed:</strong> {user?.email_confirmed_at ? "Yes ✅" : "Pending ⏳"}
-          </p>
-          {user?.user_metadata?.gender && (
-            <p style={{ color: "#a1a1aa", fontSize: "0.875rem" }}>
-              <strong>Gender:</strong> {user.user_metadata.gender}
-            </p>
-          )}
-        </div>
-
-        <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <button
-            onClick={handleSignOut}
-            className="btn-primary"
-            style={{ display: "inline-flex", width: "auto", padding: "0.75rem 1.5rem" }}
-          >
-            Sign Out
-          </button>
-          <Link
-            href="/"
-            className="btn-social"
-            style={{ display: "inline-flex", width: "auto", padding: "0.75rem 1.5rem" }}
-          >
-            Home Page
-          </Link>
-        </div>
-      </div>
+      {/* Floating Islands */}
+      {REALMS.map(realm => (
+         <RealmNode key={realm.id} {...realm} />
+      ))}
     </div>
   );
 }

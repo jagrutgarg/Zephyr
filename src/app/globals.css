@@ -428,3 +428,21 @@ body {
   color: white;
   box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
 }
+
+/* Mobile Responsiveness for Map */
+@media (max-width: 768px) {
+  .realm-node-wrapper {
+    transform: scale(0.65) !important;
+  }
+  .void-node-wrapper {
+    transform: scale(0.65) !important;
+  }
+  .auth-card {
+    padding: 1.5rem !important;
+    margin: 1rem !important;
+    max-width: 90% !important;
+  }
+  .auth-title {
+    font-size: 1.8rem !important;
+  }
+}
