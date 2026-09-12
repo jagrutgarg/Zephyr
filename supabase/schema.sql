@@ -1,130 +1,156 @@
--- Aetheria Database Schema and Roles Setup
+-- Aetheria Database Schema for Phase 4
 
--- 1. Create Realms Master Table
-CREATE TABLE public.realms (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    guardian TEXT NOT NULL,
-    color_theme TEXT NOT NULL,
-    description TEXT
+-- 1. Realms reference table (static data, seed once)
+create table if not exists public.realms (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  name text not null,
+  guardian text not null,
+  accent_color text not null,
+  description text
 );
 
--- Note: We expect the app to handle most realm data as constants, but the schema allows expansion.
--- Insert default realms
-INSERT INTO public.realms (id, name, guardian, color_theme, description) VALUES
-('enchanted_woods', 'The Enchanted Woods', 'The Fairy Keeper', 'green', 'Personal tasks, habits, self-care.'),
-('celestial_kingdom', 'The Celestial Kingdom', 'The Royal Dragon', 'gold', 'Major responsibilities, academics.'),
-('astral_library', 'The Astral Library', 'The Archivist', 'blue', 'Studying, research, assignments.'),
-('neo_mystica', 'Neo-Mystica', 'AX-7 the Ancient Machine', 'purple', 'Projects, coding, work/productivity.'),
-('xyran_frontier', 'Xyran Frontier', 'The Star Wanderer', 'dark-purple', 'Long-term goals, ambitions, new challenges.'),
-('timeless_realm', 'The Timeless Realm', 'The Chronomancer', 'teal', 'Deadlines, scheduling, time management.'),
-('dreaming_isles', 'The Dreaming Isles', 'The Dream Weaver', 'pink', 'Creative hobbies, personal projects.');
-
--- 2. Create User Stats
-CREATE TABLE public.user_stats (
-    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    void_percentage INTEGER DEFAULT 0 CHECK(void_percentage >= 0 AND void_percentage <= 100),
-    streak_count INTEGER DEFAULT 0,
-    last_active_date DATE DEFAULT CURRENT_DATE,
-    total_shards INTEGER DEFAULT 0
+-- 2. Quests table
+create table if not exists public.quests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users not null,
+  realm_id uuid references public.realms not null,
+  title text not null,
+  description text,
+  difficulty text not null default 'normal', -- 'easy' | 'normal' | 'hard'
+  xp_value int not null default 10,
+  shard_value int not null default 5,
+  due_date timestamptz,
+  is_completed boolean not null default false,
+  completed_at timestamptz,
+  created_at timestamptz not null default now()
 );
 
--- 3. Create User Realm Progress
-CREATE TABLE public.user_realm_progress (
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    realm_id TEXT REFERENCES public.realms(id) ON DELETE CASCADE,
-    current_xp INTEGER DEFAULT 0,
-    current_level INTEGER DEFAULT 1,
-    PRIMARY KEY(user_id, realm_id)
+-- 3. Per-user, per-realm progress
+create table if not exists public.user_realm_progress (
+  user_id uuid references auth.users not null,
+  realm_id uuid references public.realms not null,
+  current_xp int not null default 0,
+  current_level int not null default 1,
+  primary key (user_id, realm_id)
 );
 
--- 4. Create Quests
-CREATE TABLE public.quests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    realm_id TEXT NOT NULL REFERENCES public.realms(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    description TEXT,
-    due_date TIMESTAMP WITH TIME ZONE,
-    completed BOOLEAN DEFAULT FALSE,
-    completed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    xp_value INTEGER DEFAULT 50,
-    shard_value INTEGER DEFAULT 10
+-- 4. Global user stats
+create table if not exists public.user_stats (
+  user_id uuid references auth.users primary key,
+  total_shards int not null default 0,
+  void_percentage numeric not null default 0,
+  streak_count int not null default 0,
+  last_active_date date
 );
 
--- Row Level Security (RLS)
-ALTER TABLE public.realms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_realm_progress ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quests ENABLE ROW LEVEL SECURITY;
+-- RLS Enforcement
+alter table public.realms enable row level security;
+alter table public.quests enable row level security;
+alter table public.user_realm_progress enable row level security;
+alter table public.user_stats enable row level security;
 
--- Realm policies: Everyone can read realms
-CREATE POLICY "Realms are viewable by everyone" ON public.realms FOR SELECT USING (true);
+-- Policies
+create policy "Realms read access" on public.realms for select using (true);
+create policy "Quests CRUD for owners" on public.quests for all using (auth.uid() = user_id);
+create policy "User realm progress for owners" on public.user_realm_progress for all using (auth.uid() = user_id);
+create policy "User stats for owners" on public.user_stats for all using (auth.uid() = user_id);
 
--- User Stats policies
-CREATE POLICY "Users can view their own stats" ON public.user_stats FOR SELECT USING (auth.uid() = user_id);
--- (Insert handled via trigger on user signup normally, but omitting for brevity. Using upserts in RPC).
+-- Complete Quest RPC Function
+create or replace function complete_quest(p_quest_id uuid)
+returns json
+language plpgsql
+security definer
+as $$
+declare
+  v_user_id uuid;
+  v_realm_id uuid;
+  v_xp_val int;
+  v_shard_val int;
+  v_cur_xp int;
+  v_cur_lvl int;
+  v_new_lvl int;
+  v_last_active date;
+  v_streak int;
+  v_today date := current_date;
+  res json;
+begin
+  -- 1. Get and lock quest
+  select user_id, realm_id, xp_value, shard_value
+  into v_user_id, v_realm_id, v_xp_val, v_shard_val
+  from public.quests
+  where id = p_quest_id and is_completed = false
+  for update;
 
--- User Realm Progress policies
-CREATE POLICY "Users can view their own progress" ON public.user_realm_progress FOR SELECT USING (auth.uid() = user_id);
+  if not found then
+    raise exception 'Quest not found or already completed';
+  end if;
 
--- Quests policies
-CREATE POLICY "Users can perform CRUD on their own quests" ON public.quests
-    FOR ALL USING (auth.uid() = user_id);
+  -- 2. Verify ownership
+  if v_user_id != auth.uid() then
+    raise exception 'Unauthorized';
+  end if;
 
--- Triggers or RPC to complete quest
-CREATE OR REPLACE FUNCTION complete_quest(p_quest_id UUID)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-    v_user_id UUID;
-    v_realm_id TEXT;
-    v_xp_val INTEGER;
-    v_shard_val INTEGER;
-    v_cur_xp INTEGER;
-    v_cur_level INTEGER;
-    v_new_level INTEGER;
-    v_req_xp FLOAT;
-BEGIN
-    -- Get quest details & lock row
-    SELECT user_id, realm_id, xp_value, shard_value INTO v_user_id, v_realm_id, v_xp_val, v_shard_val
-    FROM public.quests
-    WHERE id = p_quest_id AND NOT completed
-    FOR UPDATE;
+  -- 3. Mark completed
+  update public.quests
+  set is_completed = true, completed_at = now()
+  where id = p_quest_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Quest not found or already completed.';
-    END IF;
+  -- 4. & 5. Update Realm Progress
+  insert into public.user_realm_progress (user_id, realm_id, current_xp, current_level)
+  values (v_user_id, v_realm_id, v_xp_val, 1)
+  on conflict (user_id, realm_id) do update 
+  set current_xp = public.user_realm_progress.current_xp + excluded.current_xp
+  returning current_xp, current_level into v_cur_xp, v_cur_lvl;
 
-    IF v_user_id != auth.uid() THEN
-        RAISE EXCEPTION 'Unauthorized';
-    END IF;
+  -- Recalculate level: Level = floor((XP / 100)^(2/3)) + 1
+  -- Or strictly following prompt: xp_required_for_level(n) = 100 * (n ^ 1.5)
+  -- Since we just add XP, we find max n where 100 * (n ^ 1.5) <= current_xp
+  -- Because level 1 requires 0 XP technically (or 100). Assuming level N starts at XP = 100 * (N-1)^1.5
+  -- A simpler pure formula: new level = floor( power((current_xp/100.0), 2.0/3.0) ) + 1
+  v_new_lvl := floor(power(v_cur_xp / 100.0, 2.0/3.0)) + 1;
+  
+  if v_new_lvl > v_cur_lvl then
+    update public.user_realm_progress
+    set current_level = v_new_lvl
+    where user_id = v_user_id and realm_id = v_realm_id;
+  end if;
 
-    -- Mark completed
-    UPDATE public.quests SET completed = TRUE, completed_at = NOW() WHERE id = p_quest_id;
+  -- 6. Update Shards, Streak, and Void
+  -- Fetch current stats
+  select last_active_date, streak_count into v_last_active, v_streak
+  from public.user_stats where user_id = v_user_id for update;
 
-    -- Update shards and streak (simplified)
-    INSERT INTO public.user_stats (user_id, total_shards)
-    VALUES (v_user_id, v_shard_val)
-    ON CONFLICT (user_id) DO UPDATE SET total_shards = public.user_stats.total_shards + EXCLUDED.total_shards, last_active_date = CURRENT_DATE;
+  if not found then
+    v_streak := 1;
+    v_last_active := v_today;
+    insert into public.user_stats (user_id, total_shards, void_percentage, streak_count, last_active_date)
+    values (v_user_id, v_shard_val, 0, 1, v_today);
+  else
+    if v_last_active = v_today - interval '1 day' then
+      v_streak := v_streak + 1;
+    elsif v_last_active < v_today - interval '1 day' then
+      v_streak := 1; -- Reset streak
+    end if;
+    v_last_active := v_today;
 
-    -- Update Realm Progress
-    INSERT INTO public.user_realm_progress (user_id, realm_id, current_xp, current_level)
-    VALUES (v_user_id, v_realm_id, v_xp_val, 1)
-    ON CONFLICT (user_id, realm_id) DO UPDATE SET current_xp = public.user_realm_progress.current_xp + EXCLUDED.current_xp
-    RETURNING current_xp, current_level INTO v_cur_xp, v_cur_level;
+    update public.user_stats
+    set total_shards = total_shards + v_shard_val,
+        void_percentage = greatest(0, void_percentage - 2),
+        streak_count = v_streak,
+        last_active_date = v_last_active
+    where user_id = v_user_id;
+  end if;
 
-    -- Calculate level (XP = 100 * Level ^ 1.5) => roughly Level = (XP/100)^(2/3)
-    v_new_level := FLOOR(POWER(v_cur_xp / 100.0, 2.0/3.0)) + 1;
-    IF v_new_level > v_cur_level THEN
-        UPDATE public.user_realm_progress SET current_level = v_new_level 
-        WHERE user_id = v_user_id AND realm_id = v_realm_id;
-    END IF;
+  -- Build response JSON
+  select json_build_object(
+    'quest_id', p_quest_id,
+    'current_xp', v_cur_xp,
+    'new_level', v_new_lvl,
+    'leveled_up', (v_new_lvl > v_cur_lvl),
+    'streak', v_streak
+  ) into res;
 
-    -- Reduce void % (simplistic rule: -2% per quest)
-    UPDATE public.user_stats SET void_percentage = GREATEST(0, void_percentage - 2) WHERE user_id = v_user_id;
-END;
+  return res;
+end;
 $$;

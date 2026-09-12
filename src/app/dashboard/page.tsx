@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { MapParallax, RealmNode, VoidNode } from "@/components/MapComponents";
 import { LogOut } from "lucide-react";
+import { useGameStore } from "@/store/useGameStore";
 
 const REALMS = [
   { id: 'enchanted_woods', name: 'The Enchanted Woods', guardian: 'The Fairy Keeper', themeColor: '#10b981', x: 20, y: 30 },
@@ -24,24 +25,32 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Stats mock for MVP
-  const voidPercentage = 15;
-  const aetherRank = 12;
-  const shards = 450;
-  const streak = 4;
+  // Zustand Score Hook
+  const { stats, realmProgress, setStats, setRealmProgress } = useGameStore();
+
+  const aetherRank = Object.values(realmProgress).reduce((acc, curr) => acc + curr.current_level, 0);
 
   useEffect(() => {
-    async function getUser() {
+    async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
-      } else {
-        setUser(user);
-        setLoading(false);
+        return;
       }
+      setUser(user);
+      
+      // Load global stats
+      const { data: statsData } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single();
+      if (statsData) setStats(statsData);
+
+      // Load Realm Progress
+      const { data: realmData } = await supabase.from('user_realm_progress').select('*').eq('user_id', user.id);
+      if (realmData) setRealmProgress(realmData);
+
+      setLoading(false);
     }
-    getUser();
-  }, [router, supabase]);
+    loadData();
+  }, [router, supabase, setStats, setRealmProgress]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -66,9 +75,9 @@ export default function DashboardPage() {
       {/* HUD (Heads Up Display) */}
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', right: '1rem', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '1rem', background: 'rgba(15,23,42,0.8)', padding: '0.5rem 1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{color: 'white', fontWeight: 'bold'}}>✨ Rank: {aetherRank}</div>
-            <div style={{color: '#34d399', fontWeight: 'bold'}}>💎 Shards: {shards}</div>
-            <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {streak}</div>
+            <div style={{color: 'white', fontWeight: 'bold'}}>✨ Rank: {aetherRank || 1}</div>
+            <div style={{color: '#34d399', fontWeight: 'bold'}}>💎 Shards: {stats.total_shards}</div>
+            <div style={{color: '#fb923c', fontWeight: 'bold'}}>🔥 Streak: {stats.streak_count}</div>
         </div>
         
         <button onClick={handleSignOut} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: '50%', padding: '0.75rem', color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }} aria-label="Sign Out">
@@ -77,12 +86,17 @@ export default function DashboardPage() {
       </div>
 
       {/* Center Hub / Void */}
-      <VoidNode percentage={voidPercentage} />
+      <VoidNode percentage={Number(stats.void_percentage) || 0} />
 
       {/* Floating Islands */}
-      {REALMS.map(realm => (
-         <RealmNode key={realm.id} {...realm} />
-      ))}
+      {REALMS.map(realm => {
+         // Using ID/Slug mapping constraint for MVP
+         // We lookup using the ID mapped in Zustand
+         const progressObj = Object.values(realmProgress).find(p => p.realm_id === realm.id || (p as any).slug === realm.id);
+         const nodeLevel = progressObj ? progressObj.current_level : 1;
+         
+         return <RealmNode key={realm.id} {...realm} level={nodeLevel} />
+      })}
     </div>
   );
 }

@@ -51,7 +51,7 @@ export function MapParallax() {
   );
 }
 
-export function RealmNode({ id, name, themeColor, x, y, guardian }: { id: string, name: string, themeColor: string, x: number, y: number, guardian: string }) {
+export function RealmNode({ id, name, themeColor, x, y, guardian, level = 1 }: { id: string, name: string, themeColor: string, x: number, y: number, guardian: string, level?: number }) {
     return (
       <motion.div
         className="realm-node-wrapper"
@@ -86,6 +86,7 @@ export function RealmNode({ id, name, themeColor, x, y, guardian }: { id: string
           >
              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'white', textAlign: 'center', padding: '0 10px' }}>{name}</div>
              <div style={{ fontSize: '0.6rem', color: '#cbd5e1', textAlign: 'center', marginTop: '4px' }}>{guardian}</div>
+             <div style={{ position: 'absolute', bottom: '-15px', background: themeColor, color: 'black', borderRadius: '12px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>Lvl {level}</div>
           </motion.div>
         </Link>
       </motion.div>
