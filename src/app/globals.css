@@ -479,15 +479,8 @@ body {
    ============================================================ */
 .aetheria-auth {
   min-height: 100vh;
-  background: linear-gradient(180deg, #cdd9f2 0%, #e7d7ec 35%, #f6e8dc 70%, #fdf3e7 100%);
-}
-
-.aetheria-auth .shape-1 {
-  background: radial-gradient(circle, rgba(196, 165, 224, 0.35) 0%, rgba(0,0,0,0) 70%);
-}
-
-.aetheria-auth .shape-2 {
-  background: radial-gradient(circle, rgba(244, 208, 163, 0.35) 0%, rgba(0,0,0,0) 70%);
+  /* Same dark backdrop as the rest of the app — only the card/inputs get the light "parchment" treatment. */
+  background: var(--bg-gradient);
 }
 
 .aetheria-auth .auth-card {
@@ -559,7 +552,16 @@ body {
 }
 
 .aetheria-auth .form-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b6bb8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  /* Fully self-contained (not just background-image) so this can't inherit
+     a stray appearance/repeat and end up tiling the arrow or showing a
+     native one alongside it. */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 1.1rem !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238b6bb8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
 }
 .aetheria-auth .form-select option {
   background-color: #fdf3e7;
