@@ -19,15 +19,21 @@ export function DashboardMapBackground() {
   return (
     <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
       <Canvas
-        camera={{ position: [0, 9, 9], fov: 50 }}
+        // Matches the .glb's own authored "Aetheria Map Overview Camera"
+        // (translation [0,48,107], yfov ~26.5°) — the model's true world
+        // scale is much larger than a small default scene, so the camera
+        // has to sit far enough back to actually frame it.
+        camera={{ position: [0, 48, 107], fov: 26.5, near: 0.1, far: 1000 }}
         style={{ width: "100%", height: "100%" }}
         gl={{ alpha: true }}
       >
         <color attach="background" args={["#020617"]} />
-        <fog attach="fog" args={["#020617", 10, 24]} />
-        <ambientLight intensity={0.6} />
-        <pointLight position={[5, 8, 5]} intensity={50} color="#8b5cf6" />
-        <pointLight position={[-6, 4, -4]} intensity={20} color="#3b82f6" />
+        <fog attach="fog" args={["#020617", 80, 260]} />
+        <ambientLight intensity={0.7} />
+        {/* decay=0 keeps intensity independent of the model's real-world scale/distance */}
+        <pointLight position={[40, 80, 40]} intensity={3} decay={0} color="#8b5cf6" />
+        <pointLight position={[-60, 40, -40]} intensity={1.2} decay={0} color="#3b82f6" />
+        <directionalLight position={[30, 100, 60]} intensity={1.2} />
         <ModelErrorBoundary fallback={null}>
           <Suspense fallback={null}>
             <AetheriaRevealIntro />
@@ -38,8 +44,8 @@ export function DashboardMapBackground() {
           enableDamping
           dampingFactor={0.08}
           target={[0, 0, 0]}
-          minDistance={3}
-          maxDistance={22}
+          minDistance={40}
+          maxDistance={220}
           minPolarAngle={0.1}
           maxPolarAngle={Math.PI / 2 - 0.03}
         />

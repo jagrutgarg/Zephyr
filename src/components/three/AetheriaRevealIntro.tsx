@@ -167,7 +167,11 @@ export function AetheriaRevealIntro({
       const directions = [new THREE.Vector3(0, 0, 4), new THREE.Vector3(-6, 0.5, -3), new THREE.Vector3(6, 0.5, -3), new THREE.Vector3(0, 2, -6), new THREE.Vector3(0, -1, 7)];
       const timeline = gsap.timeline({ onComplete: applyFinalState });
       clouds.forEach((cloud, index) => {
-        const direction = directions[index % directions.length];
+        // Scale the dispersal distance to the cloud's own distance from center so it
+        // reads as a real "parting" sweep regardless of the model's absolute world scale
+        // (these fixed unit offsets were sized for a much smaller scene originally).
+        const dispersal = Math.max(cloud.position.length(), 20) * 0.9;
+        const direction = directions[index % directions.length].clone().normalize().multiplyScalar(dispersal);
         timeline.to(cloud.object.position, { x: cloud.position.x + direction.x, y: cloud.position.y + direction.y, z: cloud.position.z + direction.z, duration: 2.8, ease: "sine.inOut" }, index * 0.15);
         timeline.to(cloud.object.scale, { x: cloud.scale.x * 1.22, y: cloud.scale.y * 1.22, z: cloud.scale.z * 1.22, duration: 2.5, ease: "sine.inOut" }, index * 0.15);
         cloud.materials.forEach(({ material }) => timeline.to(material, { opacity: 0, duration: 2.35, ease: "power1.in" }, 0.35 + index * 0.15));

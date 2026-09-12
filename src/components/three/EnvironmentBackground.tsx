@@ -13,8 +13,12 @@ const MAP_MODEL_PATH = "/models/environment/aetheria_map.glb";
  * degrades to the plain starfield/ground it already has.
  */
 export function EnvironmentBackground({
-  scale = 1,
-  position = [0, -1, 0],
+  // The map's real-world scale is authored for its own ~110-unit-distance
+  // camera (see DashboardMapBackground) — this scene's camera sits only
+  // ~7 units out, so the model is scaled way down and pushed back/below to
+  // read as a small distant backdrop instead of engulfing the whole scene.
+  scale = 0.04,
+  position = [0, -20, -30],
 }: {
   scale?: number;
   position?: [number, number, number];
