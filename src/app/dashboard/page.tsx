@@ -11,16 +11,8 @@ import { OnboardingModal } from "@/components/OnboardingModal";
 import { LogOut, Plus } from "lucide-react";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
-
-const REALMS = [
-  { id: 'enchanted_woods', name: 'The Enchanted Woods', guardian: 'The Fairy Keeper', themeColor: '#10b981', x: 20, y: 30 },
-  { id: 'celestial_kingdom', name: 'The Celestial Kingdom', guardian: 'The Royal Dragon', themeColor: '#fbbf24', x: 50, y: 15 },
-  { id: 'astral_library', name: 'The Astral Library', guardian: 'The Archivist', themeColor: '#3b82f6', x: 80, y: 30 },
-  { id: 'neo_mystica', name: 'Neo-Mystica', guardian: 'AX-7 Ancient Machine', themeColor: '#8b5cf6', x: 85, y: 65 },
-  { id: 'xyran_frontier', name: 'Xyran Frontier', guardian: 'The Star Wanderer', themeColor: '#6366f1', x: 60, y: 85 },
-  { id: 'timeless_realm', name: 'The Timeless Realm', guardian: 'The Chronomancer', themeColor: '#14b8a6', x: 30, y: 85 },
-  { id: 'dreaming_isles', name: 'The Dreaming Isles', guardian: 'The Dream Weaver', themeColor: '#f472b6', x: 10, y: 60 },
-];
+import { REALMS } from "@/lib/realms";
+import { Swords } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -142,6 +134,12 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button
+              onClick={() => router.push('/quest-walker')}
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '999px', padding: '0.75rem 1.25rem', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)' }}
+            >
+              <Swords size={18} /> Begin Today's Quest
+            </button>
             <ThematicClock />
             <button
               onClick={() => setShowOnboarding(true)}
