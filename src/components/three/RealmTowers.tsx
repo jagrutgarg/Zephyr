@@ -20,13 +20,15 @@ type TowerPlacement = {
 
 // Extend this as more Realm tower .glb files become available.
 //
-// IMPORTANT: timeless_realm.glb, celestial_kingdom.glb, and the current
-// astral_library.glb are large uncompressed source assets (100MB+ each) —
-// loading them into the same shared WebGL context as the map/ocean was
-// exhausting GPU memory and blanking out the ENTIRE 3D scene (map, ocean,
-// every other tower included), not just failing gracefully on their own.
-// They stay out of TOWER_PLACEMENTS until they're run through Draco/
-// meshopt compression and texture downscaling (see README limitations).
+// NOTE on the two heaviest models (timeless_realm.glb ~105MB,
+// celestial_kingdom.glb ~119MB): loading the FULL-SIZE astral_library.glb
+// (135MB) as an always-visible tower previously exhausted GPU memory and
+// blanked out the entire scene. These two are real-world-scale source
+// assets in the same weight class, so they're placed here gated normally
+// (awakened-only, not always-visible) to limit exposure — but they are
+// UNVERIFIED. If the map goes blank again after awakening either Realm,
+// pull that one entry back out and Draco/meshopt-compress the source file
+// first (see README limitations).
 const TOWER_PLACEMENTS: TowerPlacement[] = [
   {
     realmSlug: "astral_library",
@@ -35,7 +37,9 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     scale: 1.2,
     // The full-size upgrade (public/models/realms/astral_library.glb, 135MB)
     // is kept in the repo via Git LFS for later use once compressed — this
-    // explicitly points back at the small, known-working original.
+    // explicitly points back at the small, known-working original, since
+    // this one specifically was the always-visible tower that crashed the
+    // scene, and it stays that way regardless of gating.
     modelPath: "/models/realms/astral_library_lowpoly_backup.glb",
   },
   {
@@ -48,16 +52,32 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     modelPath: "/models/environment/enchanted_woods_island.glb",
     exposure: 0.12,
   },
-  // xyran_frontier.glb (24MB, volcano_with_lava) is also held back for now —
-  // it's the lightest of the 4 new models, but with no way to test-render
-  // it here, restoring a confirmed-working map takes priority over
-  // gambling on it. Re-enable once it's been verified/compressed:
-  //   {
-  //     realmSlug: "xyran_frontier",
-  //     position: [42, 17, 16], // Xyran_Frontier Island node, yaw ~22.9°
-  //     rotationY: 0.4,
-  //     scale: 0.02, // unverified guess
-  //   },
+  {
+    realmSlug: "xyran_frontier",
+    // Xyran_Frontier Island node: translation [42, 12, 16], yaw ~22.9°.
+    // 24MB — the lightest of the new models, and already used without
+    // issue as the quest-walker focus scene's centerpiece (RealmScene.tsx).
+    position: [42, 17, 16],
+    rotationY: 0.4,
+    scale: 0.02,
+    exposure: 0.6,
+  },
+  {
+    realmSlug: "timeless_realm",
+    // Timeless_Realm Island node: translation [-9, 8, 39], yaw ~-23°.
+    position: [-9, 13, 39],
+    rotationY: -0.4,
+    scale: 0.05,
+    exposure: 0.5,
+  },
+  {
+    realmSlug: "celestial_kingdom",
+    // Celestial_Kingdom Island node: translation [34, 22, -21], yaw ~5.7°.
+    position: [34, 27, -21],
+    rotationY: 0.1,
+    scale: 0.05,
+    exposure: 0.5,
+  },
 ];
 
 /** Scales a tower up from nothing over ~1.2s the first time it renders — the "manifesting" moment. */
