@@ -21,7 +21,6 @@ One optional file per realm, named by its slug (matches `src/lib/realms.ts`):
 - `enchanted_woods.glb`
 - `celestial_kingdom.glb`
 - `astral_library.glb`
-- `neo_mystica.glb`
 - `xyran_frontier.glb`
 - `timeless_realm.glb`
 - `dreaming_isles.glb`

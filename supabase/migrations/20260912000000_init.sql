@@ -197,11 +197,10 @@ $$;
 
 -- Seed Realms Data (RUN THIS TO FIX EMPTY REALMS ON ISLAND CLICK!)
 insert into public.realms (slug, name, guardian, accent_color)
-values 
+values
   ('enchanted_woods', 'The Enchanted Woods', 'The Fairy Keeper', '#10b981'),
   ('celestial_kingdom', 'The Celestial Kingdom', 'The Royal Dragon', '#fbbf24'),
   ('astral_library', 'The Astral Library', 'The Archivist', '#3b82f6'),
-  ('neo_mystica', 'Neo-Mystica', 'AX-7 Ancient Machine', '#8b5cf6'),
   ('xyran_frontier', 'Xyran Frontier', 'The Star Wanderer', '#6366f1'),
   ('timeless_realm', 'The Timeless Realm', 'The Chronomancer', '#14b8a6'),
   ('dreaming_isles', 'The Dreaming Isles', 'The Dream Weaver', '#f472b6')

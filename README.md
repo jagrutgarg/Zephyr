@@ -2,7 +2,7 @@
 
 *A gamified productivity app that turns your to-do list into a living fantasy world.*
 
-Aetheria is a task manager structured like an RPG. Every task you add becomes a **Quest**, which AI classifies into one of 8 **Realms**. Each Realm has a Guardian and connects to a real-world attribute (Strength, Intellect, Vitality, Connection, Exploration, Discipline, Creativity, or Miscellany). By completing quests, you build Realm Towers, earn Shards, and fight off **the Void**—a corruption fueled by procrastination.
+Aetheria is a task manager structured like an RPG. Every task you add becomes a **Quest**, which AI classifies into one of 6 **Realms**. Each Realm has a Guardian and connects to a real-world attribute (Strength, Intellect, Vitality, Connection, Exploration, Discipline, Creativity, or Miscellany). By completing quests, you build Realm Towers, earn Shards, and fight off **the Void**—a corruption fueled by procrastination.
 
 ---
 
@@ -22,18 +22,16 @@ Aetheria is a task manager structured like an RPG. Every task you add becomes a 
 
 ## The Concept
 
-Aetheria is a world powered by your actions. Eight Realms exist in a 3D ocean, each representing a part of your life:
+Aetheria is a world powered by your actions. Six Realms exist in a 3D ocean, each representing a part of your life:
 
 | Realm | Attribute | Guardian |
 |---|---|---|
 | The Enchanted Woods | Strength | The Fairy Keeper |
 | The Celestial Kingdom | Vitality | The Royal Dragon |
 | The Astral Library | Intellect | The Archivist |
-| Neo-Mystica | Connection | AX-7, the Ancient Machine |
 | Xyran Frontier | Exploration | The Star Wanderer |
 | The Timeless Realm | Discipline | The Chronomancer |
 | The Dreaming Isles | Creativity | The Dream Weaver |
-| The Wandering Isles | Miscellany | The Wayfinder |
 
 As the Guardian, you keep these Realms alive safely. Ignore your tasks, and **the Void** grows, which dampens your rewards. Complete tasks, and the Towers rise, the Guardians react, and you help restore the world.
 
@@ -60,7 +58,7 @@ The Void has consequences. If it passes 60%, your completion rewards decrease, d
 Guardians offer deterministic, handwritten dialogue when you complete quests and level up.
 
 ### 🏆 Milestones
-If you reach level 10 in all 8 Realms while keeping the Void at 0%, you trigger an "Aetheria Restored" event, giving you a tangible goal.
+If you reach level 10 in all 6 Realms while keeping the Void at 0%, you trigger an "Aetheria Restored" event, giving you a tangible goal.
 
 ### ✅ Todo-App Usability
 Aetheria aims to be a fast task manager first:
