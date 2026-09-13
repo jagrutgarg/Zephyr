@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Check, Trash2, Edit2, Calendar, CalendarPlus, Swords, Repeat, Archive, Tag, ChevronDown, ChevronUp, Lock, CheckSquare } from "lucide-react";
 import { RealmBackground } from "@/components/RealmBackground";
+import { RealmModelShowcase } from "@/components/three/RealmModelShowcase";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
@@ -400,6 +401,12 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                 </motion.button>
             </div>
          </div>
+
+         {realm && (
+           <div style={{ marginBottom: '2rem' }}>
+             <RealmModelShowcase realmSlug={slug} accentColor={accent} />
+           </div>
+         )}
 
          {/* Quest List */}
          <div className="space-y-4">

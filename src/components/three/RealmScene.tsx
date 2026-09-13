@@ -8,21 +8,7 @@ import { OrbitCharacter } from "./OrbitCharacter";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { EnvironmentBackground } from "./EnvironmentBackground";
-
-// celestial_kingdom.glb and timeless_realm.glb are new, different (much
-// smaller, ~38-46MB) source files as of this pass — the earlier ~105-119MB
-// versions that blanked the World Map were removed from the repo entirely.
-// These are placed here first (an isolated single-model Canvas) rather
-// than in the shared World Map scene (RealmTowers.tsx), which has crashed
-// on anything much heavier than the two confirmed-safe towers there —
-// unverified until someone actually awakens these Realms and confirms.
-const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number]; exposure?: number }> = {
-  astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 2.0, position: [0, -1.8, 0], exposure: 0.6 },
-  enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 0.4, position: [0, -1.8, 0], exposure: 0.6 },
-  xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 0.18, position: [0, -1.8, 0], exposure: 0.6 },
-  celestial_kingdom: { path: "/models/realms/celestial_kingdom.glb", scale: 0.05, position: [0, -1.8, 0], exposure: 0.6 },
-  timeless_realm: { path: "/models/realms/timeless_realm.glb", scale: 0.05, position: [0, -1.8, 0], exposure: 0.6 },
-};
+import { KNOWN_REALM_MODELS } from "@/lib/realmModels";
 
 /**
  * Renders /models/realms/<slug>.glb if present, otherwise nothing — a
