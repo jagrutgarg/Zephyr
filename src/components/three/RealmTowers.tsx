@@ -19,12 +19,24 @@ type TowerPlacement = {
 };
 
 // Extend this as more Realm tower .glb files become available.
+//
+// IMPORTANT: timeless_realm.glb, celestial_kingdom.glb, and the current
+// astral_library.glb are large uncompressed source assets (100MB+ each) —
+// loading them into the same shared WebGL context as the map/ocean was
+// exhausting GPU memory and blanking out the ENTIRE 3D scene (map, ocean,
+// every other tower included), not just failing gracefully on their own.
+// They stay out of TOWER_PLACEMENTS until they're run through Draco/
+// meshopt compression and texture downscaling (see README limitations).
 const TOWER_PLACEMENTS: TowerPlacement[] = [
   {
     realmSlug: "astral_library",
     position: [-27, 20, -46],
     rotationY: -0.3,
     scale: 1.2,
+    // The full-size upgrade (public/models/realms/astral_library.glb, 135MB)
+    // is kept in the repo via Git LFS for later use once compressed — this
+    // explicitly points back at the small, known-working original.
+    modelPath: "/models/realms/astral_library_lowpoly_backup.glb",
   },
   {
     realmSlug: "enchanted_woods",
@@ -36,27 +48,16 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     modelPath: "/models/environment/enchanted_woods_island.glb",
     exposure: 0.12,
   },
-  {
-    realmSlug: "timeless_realm",
-    // Timeless_Realm Island node: translation [-9, 8, 39], yaw ~-23°.
-    position: [-9, 13, 39],
-    rotationY: -0.4,
-    scale: 0.05,
-  },
-  {
-    realmSlug: "celestial_kingdom",
-    // Celestial_Kingdom Island node: translation [34, 22, -21], yaw ~5.7°.
-    position: [34, 27, -21],
-    rotationY: 0.1,
-    scale: 0.05,
-  },
-  {
-    realmSlug: "xyran_frontier",
-    // Xyran_Frontier Island node: translation [42, 12, 16], yaw ~22.9°.
-    position: [42, 17, 16],
-    rotationY: 0.4,
-    scale: 0.2,
-  },
+  // xyran_frontier.glb (24MB, volcano_with_lava) is also held back for now —
+  // it's the lightest of the 4 new models, but with no way to test-render
+  // it here, restoring a confirmed-working map takes priority over
+  // gambling on it. Re-enable once it's been verified/compressed:
+  //   {
+  //     realmSlug: "xyran_frontier",
+  //     position: [42, 17, 16], // Xyran_Frontier Island node, yaw ~22.9°
+  //     rotationY: 0.4,
+  //     scale: 0.02, // unverified guess
+  //   },
 ];
 
 /** Scales a tower up from nothing over ~1.2s the first time it renders — the "manifesting" moment. */
