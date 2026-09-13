@@ -412,8 +412,20 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
             </div>
          </div>
 
-         {/* Realm Model removed as requested */}
-
+         {realm && (
+           <div style={{ marginBottom: '2.5rem', width: '100%', borderRadius: '24px', overflow: 'hidden', border: `1px solid ${accent}40`, boxShadow: `0 10px 40px ${accent}20` }}>
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img 
+               src={`/images/${slug}.png`} 
+               alt={realm?.name || "Realm"} 
+               style={{ width: '100%', height: 'auto', maxHeight: '400px', display: 'block', objectFit: 'cover', objectPosition: 'center' }}
+               onError={(e) => {
+                 // Hide image block cleanly if the specific realm doesn't have an uploaded PNG yet
+                 (e.currentTarget.parentNode as HTMLElement).style.display = 'none';
+               }} 
+             />
+           </div>
+         )}
          {/* Quest List */}
          <div className="space-y-4">
              <div style={{ marginBottom: '1.25rem' }}>
