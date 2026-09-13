@@ -21,10 +21,11 @@ export function VoidVortex({ percentage }: { percentage: number }) {
 
   return (
     <group ref={groupRef} position={[0, 2, 0]}>
-      <mesh>
-        <sphereGeometry args={[radius * 0.35, 32, 32]} />
-        <meshStandardMaterial color="#000000" emissive="#1e1b4b" emissiveIntensity={0.4} roughness={1} />
-      </mesh>
+      {/* A solid sphere used to sit here, but it dominated the view whenever
+          the camera zoomed in near the map's center (it sits at the origin,
+          right where the free-look camera naturally points) — the drifting
+          particles alone read as an ambient corruption effect without
+          blocking anything. */}
       <Sparkles
         count={40 + Math.round(p)}
         scale={[radius, radius * 0.6, radius]}
