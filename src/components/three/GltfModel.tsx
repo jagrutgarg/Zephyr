@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -17,16 +18,13 @@ export function GltfModel({
   exposure = 1,
 }: {
   path: string;
-  scale?: number;
+  scale?: number | [number, number, number];
   position?: [number, number, number];
   rotation?: [number, number, number];
   /** Multiplies this instance's material color/emissive — use <1 to render it dimmer than the shared scene lighting would otherwise make it. */
   exposure?: number;
 }) {
-  // "/draco/" points at the self-hosted decoder in public/draco — needed for
-  // any .glb exported with Draco mesh compression (e.g. the environment map);
-  // harmless no-op for plain, uncompressed .glb files.
-  const { scene } = useGLTF(path, "/draco/");
+  const { scene } = useGLTF(path, true);
   const cloned = useCloneScene(scene, exposure);
 
   return (
@@ -40,23 +38,26 @@ export function GltfModel({
 // Also clones materials (rather than sharing the cached ones) whenever exposure != 1, so
 // darkening one instance never affects other instances of the same cached .glb.
 function useCloneScene(scene: THREE.Object3D, exposure: number) {
-  const cloned = scene.clone(true);
-  if (exposure !== 1) {
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const applyExposure = (mat: THREE.Material) => {
-          const cloned = mat.clone();
-          if (cloned instanceof THREE.MeshStandardMaterial || cloned instanceof THREE.MeshPhysicalMaterial) {
-            cloned.color.multiplyScalar(exposure);
-            if (cloned.emissive) cloned.emissive.multiplyScalar(exposure);
-          }
-          return cloned;
-        };
-        child.material = Array.isArray(child.material)
-          ? child.material.map(applyExposure)
-          : applyExposure(child.material);
-      }
-    });
-  }
-  return cloned;
+  return useMemo(() => {
+    const cloned = scene.clone(true);
+    if (exposure !== 1) {
+      cloned.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const applyExposure = (mat: THREE.Material) => {
+            const clonedMat = mat.clone();
+            if (clonedMat instanceof THREE.MeshStandardMaterial || clonedMat instanceof THREE.MeshPhysicalMaterial) {
+              clonedMat.color.multiplyScalar(exposure);
+              if (clonedMat.emissive) clonedMat.emissive.multiplyScalar(exposure);
+            }
+            return clonedMat;
+          };
+          child.material = Array.isArray(child.material)
+            ? child.material.map(applyExposure)
+            : applyExposure(child.material);
+        }
+      });
+    }
+    return cloned;
+  }, [scene, exposure]);
 }
+

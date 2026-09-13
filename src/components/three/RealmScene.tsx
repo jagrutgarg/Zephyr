@@ -27,19 +27,30 @@ function PrimitiveCenterpiece({ color, celebrating }: { color: string; celebrati
   );
 }
 
+const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number] }> = {
+  astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 1 },
+  enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 0.1, position: [0, -0.5, 0] },
+  xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 0.05, position: [0, -0.8, 0] },
+};
+
 /**
  * Renders /models/realms/<slug>.glb if present, otherwise the placeholder
- * icosahedron. Drop a .glb at that path and it swaps in automatically —
- * no code change needed (see public/models/README.md).
+ * icosahedron. Drop a .glb at that path and update KNOWN_REALM_MODELS.
  */
 function Centerpiece({ realmSlug, color, celebrating }: { realmSlug: string; color: string; celebrating: boolean }) {
+  const modelInfo = KNOWN_REALM_MODELS[realmSlug];
+
   return (
     <>
-      <ModelErrorBoundary fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
-        <Suspense fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
-          <GltfModel path={`/models/realms/${realmSlug}.glb`} />
-        </Suspense>
-      </ModelErrorBoundary>
+      {modelInfo ? (
+        <ModelErrorBoundary fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
+          <Suspense fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
+            <GltfModel path={modelInfo.path} scale={modelInfo.scale} position={modelInfo.position} />
+          </Suspense>
+        </ModelErrorBoundary>
+      ) : (
+        <PrimitiveCenterpiece color={color} celebrating={celebrating} />
+      )}
       {celebrating && <Sparkles count={80} scale={4} size={4} speed={0.6} color={color} />}
     </>
   );

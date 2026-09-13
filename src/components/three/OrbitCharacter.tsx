@@ -33,7 +33,7 @@ function CharacterVisual() {
   return (
     <ModelErrorBoundary fallback={<PrimitiveCharacter />}>
       <Suspense fallback={<PrimitiveCharacter />}>
-        <GltfModel path={CHARACTER_MODEL_PATH} />
+        <GltfModel path={CHARACTER_MODEL_PATH} scale={0.22} />
       </Suspense>
     </ModelErrorBoundary>
   );
@@ -67,8 +67,8 @@ export function OrbitCharacter({
     const z = Math.sin(angle) * radius;
 
     if (groupRef.current) {
-      groupRef.current.position.set(x, 0.6, z);
-      groupRef.current.rotation.y = -angle + Math.PI / 2;
+      groupRef.current.position.set(x, -0.9, z);
+      groupRef.current.rotation.y = -angle + Math.PI;
     }
 
     if (progress >= 1 && !completedRef.current) {

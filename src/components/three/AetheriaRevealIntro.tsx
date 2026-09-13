@@ -63,7 +63,7 @@ export function AetheriaRevealIntro({
 }) {
   // The Blender exporter enables Draco when available; these local decoder
   // files are copied to public/draco so production does not depend on a CDN.
-  const { scene: source } = useGLTF(path, "/draco/");
+  const { scene: source } = useGLTF(path, true);
   const scene = useMemo(() => source.clone(true), [source]);
   const { camera, gl, size, scene: canvasScene } = useThree();
   const composerRef = useRef<EffectComposer | null>(null);
