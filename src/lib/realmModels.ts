@@ -12,7 +12,4 @@ export type RealmModelInfo = {
 export const KNOWN_REALM_MODELS: Record<string, RealmModelInfo> = {
   astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 1.0, position: [0, -1.8, 0] },
   enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 1.0, position: [0, -1.8, 0] },
-  xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 1.0, position: [0, -1.8, 0] },
-  celestial_kingdom: { path: "/models/realms/celestial_kingdom.glb", scale: 1.0, position: [0, -1.8, 0] },
-  timeless_realm: { path: "/models/realms/timeless_realm.glb", scale: 1.0, position: [0, -1.8, 0] },
 };

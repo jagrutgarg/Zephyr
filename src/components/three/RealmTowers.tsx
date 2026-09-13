@@ -32,50 +32,18 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     realmSlug: "astral_library",
     position: [-27, 20, -46],
     rotationY: -0.3,
-    scale: 1.2,
-    // The full-size upgrade (public/models/realms/astral_library.glb, 135MB)
-    // is kept in the repo via Git LFS for later use once compressed — this
-    // explicitly points back at the small, known-working original, since
-    // this one specifically was the always-visible tower that crashed the
-    // scene, and it stays that way regardless of gating.
+    scale: 2.8,
     modelPath: "/models/realms/astral_library_lowpoly_backup.glb",
   },
   {
     realmSlug: "enchanted_woods",
     // Enchanted_Woods Island node in aetheria_map.glb: translation [-37, 13, -13], yaw ~29°.
     // +6 on Y lifts the model from the island's center anchor to sit on top.
-    position: [-37, 19, -13],
+    position: [-37, 21, -13],
     rotationY: 0.5,
-    scale: 0.6,
+    scale: 2.4,
     modelPath: "/models/environment/enchanted_woods_island.glb",
-    exposure: 0.12,
-  },
-  {
-    realmSlug: "xyran_frontier",
-    // Xyran_Frontier Island node: translation [42, 12, 16], yaw ~22.9°.
-    position: [42, 17, 16],
-    rotationY: 0.4,
-    scale: 0.02,
-    exposure: 0.6,
-  },
-  {
-    realmSlug: "timeless_realm",
-    // Timeless_Realm Island node: translation [-9, 8, 39], yaw ~-23°.
-    // battle_monument_square.glb, 45MB — unverified in this shared scene.
-    position: [-9, 13, 39],
-    rotationY: -0.4,
-    scale: 0.05,
-    exposure: 0.6,
-  },
-  {
-    realmSlug: "celestial_kingdom",
-    // Celestial_Kingdom Island node: translation [34, 22, -21], yaw ~5.7°.
-    // lennox_castle_hospital.glb, 39MB — unverified in this shared scene.
-    position: [34, 27, -21],
-    rotationY: 0.1,
-    scale: 0.05,
-    exposure: 0.6,
-  },
+  }
 ];
 
 /** Scales a tower up from nothing over ~1.2s the first time it renders — the "manifesting" moment. */
