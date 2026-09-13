@@ -372,60 +372,65 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
              </div>
          )}
 
-         <div className="flex justify-between items-center mb-10" style={{ flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{
-                    width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0,
-                    background: `radial-gradient(circle, ${accent}30 0%, rgba(15,23,42,0.9) 75%)`,
-                    border: `2px solid ${accent}`, boxShadow: `0 0 20px ${accent}60`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.4rem', fontWeight: 'bold', color: accent,
-                }}>
-                    {realm?.guardian?.[0] || '?'}
+         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-10 lg:mb-12 items-start justify-between">
+            {/* Left Column: Info + Buttons */}
+            <div className="flex-1 flex flex-col gap-6 w-full lg:max-w-xl">
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
+                    <div style={{
+                        width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0,
+                        background: `radial-gradient(circle, ${accent}30 0%, rgba(15,23,42,0.9) 75%)`,
+                        border: `2px solid ${accent}`, boxShadow: `0 0 20px ${accent}60`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1.4rem', fontWeight: 'bold', color: accent,
+                    }}>
+                        {realm?.guardian?.[0] || '?'}
+                    </div>
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2" style={{ textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)`, lineHeight: 1.1 }}>{realm?.name}</h1>
+                      <p className="text-slate-300 font-medium text-sm sm:text-base leading-snug mb-2" style={{ maxWidth: '420px' }}>
+                          {realm?.attribute === "Strength" && "Train your body and conquer physical challenges."}
+                          {realm?.attribute === "Intellect" && "Expand your mind, read, and learn new skills."}
+                          {realm?.attribute === "Vitality" && "Focus on health, wellness, and self-care routines."}
+                          {realm?.attribute === "Creativity" && "Build, write, draw, and express your imagination."}
+                          {realm?.attribute === "Discipline" && "Build habits, organize your life, and stay consistent."}
+                          {realm?.attribute === "Connection" && "Spend time with others and nurture relationships."}
+                          {realm?.attribute === "Exploration" && "Travel, try new things, and step out of your comfort zone."}
+                          {realm?.attribute === "Miscellany" && "Handle the unclassified, the errands, and the odds and ends."}
+                      </p>
+                      <p className="text-slate-500 text-xs sm:text-sm font-semibold tracking-wide uppercase">Guarded by {realm?.guardian}</p>
+                    </div>
                 </div>
-                <div>
-                  <h1 style={{ fontSize: '2.4rem', fontWeight: 'bold', marginBottom: '0.25rem', color: 'white', textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)` }}>{realm?.name}</h1>
-                  <p className="text-slate-300 font-medium" style={{ marginBottom: '0.2rem' }}>
-                      {realm?.attribute === "Strength" && "Train your body and conquer physical challenges."}
-                      {realm?.attribute === "Intellect" && "Expand your mind, read, and learn new skills."}
-                      {realm?.attribute === "Vitality" && "Focus on health, wellness, and self-care routines."}
-                      {realm?.attribute === "Creativity" && "Build, write, draw, and express your imagination."}
-                      {realm?.attribute === "Discipline" && "Build habits, organize your life, and stay consistent."}
-                      {realm?.attribute === "Connection" && "Spend time with others and nurture relationships."}
-                      {realm?.attribute === "Exploration" && "Travel, try new things, and step out of your comfort zone."}
-                      {realm?.attribute === "Miscellany" && "Handle the unclassified, the errands, and the odds and ends."}
-                  </p>
-                  <p className="text-slate-500 text-sm">Guarded by {realm?.guardian}</p>
+
+                <div className="flex items-center gap-4 sm:gap-6 flex-wrap mt-2">
+                    <div className="hidden sm:block"><ThematicClock accentColor={accent} /></div>
+                    <motion.button
+                        onClick={() => openModal()}
+                        whileHover={{ scale: 1.04, boxShadow: `0 6px 28px ${accent}70` }}
+                        whileTap={{ scale: 0.95 }}
+                        style={{ background: accent, boxShadow: `0 4px 18px ${accent}50`, border: 'none', padding: '0.8rem 1.75rem', borderRadius: '999px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}
+                    >
+                       <motion.span whileHover={{ rotate: 90 }} style={{ display: 'inline-flex' }}><Plus size={18} /></motion.span> New Quest
+                    </motion.button>
                 </div>
             </div>
 
-            <div className="flex items-center gap-6">
-                <div className="hidden sm:block"><ThematicClock accentColor={accent} /></div>
-                <motion.button
-                    onClick={() => openModal()}
-                    whileHover={{ scale: 1.04, boxShadow: `0 6px 28px ${accent}70` }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{ background: accent, boxShadow: `0 4px 18px ${accent}50`, border: 'none', padding: '0.8rem 1.5rem', borderRadius: '999px', color: 'black', fontWeight: 'bold', display: 'flex', gap: '0.5rem', alignItems: 'center', cursor: 'pointer' }}
-                >
-                   <motion.span whileHover={{ rotate: 90 }} style={{ display: 'inline-flex' }}><Plus size={18} /></motion.span> New Quest
-                </motion.button>
-            </div>
+            {/* Right Column: Image */}
+            {realm && (
+              <div className="w-full lg:max-w-md xl:max-w-lg shrink-0">
+                <div style={{ borderRadius: '24px', overflow: 'hidden', border: `1px solid ${accent}40`, boxShadow: `0 10px 40px ${accent}25`, background: 'rgba(15,23,42,0.6)' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={`/images/${slug}.png`} 
+                    alt={realm?.name || "Realm"} 
+                    style={{ width: '100%', height: 'auto', maxHeight: '280px', display: 'block', objectFit: 'cover', objectPosition: 'center' }}
+                    onError={(e) => {
+                      (e.currentTarget.parentNode as HTMLElement).style.display = 'none';
+                    }} 
+                  />
+                </div>
+              </div>
+            )}
          </div>
-
-         {realm && (
-           <div style={{ marginBottom: '2.5rem', width: '100%', borderRadius: '24px', overflow: 'hidden', border: `1px solid ${accent}40`, boxShadow: `0 10px 40px ${accent}20` }}>
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img 
-               src={`/images/${slug}.png`} 
-               alt={realm?.name || "Realm"} 
-               style={{ width: '100%', height: 'auto', maxHeight: '400px', display: 'block', objectFit: 'cover', objectPosition: 'center' }}
-               onError={(e) => {
-                 // Hide image block cleanly if the specific realm doesn't have an uploaded PNG yet
-                 (e.currentTarget.parentNode as HTMLElement).style.display = 'none';
-               }} 
-             />
-           </div>
-         )}
          {/* Quest List */}
          <div className="space-y-4">
              <div style={{ marginBottom: '1.25rem' }}>
@@ -472,8 +477,8 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                 overflow: 'hidden', cursor: 'default'
                             }}
                          >
-                             <div style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                 <div className="flex-1 flex gap-4 items-center">
+                             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 p-4 sm:p-5">
+                                 <div className="flex-1 flex gap-4 items-start sm:items-center">
                                      <button 
                                         onClick={(e) => { e.stopPropagation(); if (!isBlocked) handleComplete(q.id); }} 
                                         title={isBlocked ? "Blocked quests cannot be completed" : "Mark Done Instantly"} 
@@ -517,8 +522,8 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                      </div>
                                  </div>
     
-                                 <div className="flex gap-2" style={{ alignItems: 'center', marginLeft: '1rem' }}>
-                                     {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                                 <div className="flex gap-3 items-center justify-end w-full sm:w-auto">
+                                     {isExpanded ? <ChevronUp size={16} color="#64748b" className="hidden sm:block" /> : <ChevronDown size={16} color="#64748b" className="hidden sm:block" />}
                                      <button
                                         disabled={isBlocked}
                                         onClick={(e) => { e.stopPropagation(); if(!isBlocked) setFocusTarget({ questId: q.id, questTitle: q.title }); }}
