@@ -3,6 +3,7 @@
 import { Billboard, Text } from "@react-three/drei";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useSpring, animated } from "@react-spring/three";
 
 /**
  * A Realm's name floating above its island, rendered as real text in the
@@ -29,11 +30,17 @@ export function RealmLabel3D({
   const router = useRouter();
   const [hovered, setHovered] = useState(false);
 
+  const { scale } = useSpring({
+    scale: hovered ? 1.08 : 1.0,
+    config: { mass: 1, tension: 280, friction: 20 },
+  });
+
   return (
     <Billboard position={position} follow>
-      <group
-        onClick={(e) => { e.stopPropagation(); router.push(`/realms/${slug}`); }}
-        onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = "pointer"; setHovered(true); }}
+      <animated.group
+        scale={scale as any}
+        onClick={(e: any) => { e.stopPropagation(); router.push(`/realms/${slug}`); }}
+        onPointerOver={(e: any) => { e.stopPropagation(); document.body.style.cursor = "pointer"; setHovered(true); }}
         onPointerOut={() => { document.body.style.cursor = "auto"; setHovered(false); }}
       >
       {/* shadow layer, offset back+down to read as depth/extrusion */}
@@ -60,7 +67,7 @@ export function RealmLabel3D({
       >
         {text}
       </Text>
-      </group>
+      </animated.group>
     </Billboard>
   );
 }

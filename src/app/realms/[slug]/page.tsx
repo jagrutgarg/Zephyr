@@ -385,7 +385,17 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                 </div>
                 <div>
                   <h1 style={{ fontSize: '2.4rem', fontWeight: 'bold', marginBottom: '0.25rem', color: 'white', textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)` }}>{realm?.name}</h1>
-                  <p className="text-slate-400">Guarded by {realm?.guardian}</p>
+                  <p className="text-slate-300 font-medium" style={{ marginBottom: '0.2rem' }}>
+                      {realm?.attribute === "Strength" && "Train your body and conquer physical challenges."}
+                      {realm?.attribute === "Intellect" && "Expand your mind, read, and learn new skills."}
+                      {realm?.attribute === "Vitality" && "Focus on health, wellness, and self-care routines."}
+                      {realm?.attribute === "Creativity" && "Build, write, draw, and express your imagination."}
+                      {realm?.attribute === "Discipline" && "Build habits, organize your life, and stay consistent."}
+                      {realm?.attribute === "Connection" && "Spend time with others and nurture relationships."}
+                      {realm?.attribute === "Exploration" && "Travel, try new things, and step out of your comfort zone."}
+                      {realm?.attribute === "Miscellany" && "Handle the unclassified, the errands, and the odds and ends."}
+                  </p>
+                  <p className="text-slate-500 text-sm">Guarded by {realm?.guardian}</p>
                 </div>
             </div>
 
@@ -402,11 +412,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
             </div>
          </div>
 
-         {realm && (
-           <div style={{ marginBottom: '2rem' }}>
-             <RealmModelShowcase realmSlug={slug} accentColor={accent} />
-           </div>
-         )}
+         {/* Realm Model removed as requested */}
 
          {/* Quest List */}
          <div className="space-y-4">
