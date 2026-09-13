@@ -110,19 +110,16 @@ A multi-section marketing page at `/` — hero, the world's story, all 8 Realms,
 
 ## Getting Started
 
-This repo uses **Git LFS** for its larger `.glb` model files — install it once per machine before cloning, or the large models will check out as text pointers instead of real files:
-
 ```bash
-git lfs install
 git clone <this-repo-url>
 cd Zephyr
 npm install
 npm run dev
 ```
 
-If you already cloned without LFS installed, run `git lfs pull` inside the repo afterward.
-
 Open [http://localhost:3000](http://localhost:3000).
+
+**Note on 3D assets:** `.glb` model files are committed directly (not via Git LFS) — Vercel's default deploy does not fetch LFS content, which silently served pointer-file text in place of every model and broke all 3D rendering in production. Keep any new model under GitHub's 100MB per-file limit, or it can't be committed as a regular blob at all.
 
 You'll need a Supabase project and a Groq API key first — see below.
 
@@ -194,8 +191,8 @@ Built to be fully operable without a mouse:
 
 ## Known Limitations / Future Work
 
-- 4 of the 8 Realms (Astral Library, Enchanted Woods, Celestial Kingdom, Timeless Realm, Xyran Frontier) have a bespoke 3D Tower/landmark; the remaining ones render no landmark yet until matching `.glb` assets are authored and their in-map coordinates traced.
-- Some of the newer Tower models are large, high-detail source assets (tens to 100+ MB) not yet optimized for the web — they're stored via Git LFS so the repo itself stays clean, but they should go through Draco/meshopt compression and texture downscaling before this ships to real users, or first-load time on the World Map will suffer badly.
+- Only 2 of the 8 Realms (Astral Library, Enchanted Woods) currently have a live 3D Tower/landmark wired into the World Map; the rest render no landmark yet. Xyran Frontier has a model but it's only used in the quest-walker focus scene, not the shared World Map Canvas — adding it there previously crashed the entire scene once its Realm was awakened, so it stays out until re-verified.
+- Timeless Realm and Celestial Kingdom's source models (~105–119MB each) exceed GitHub's 100MB per-file limit for a regular commit and were removed from the repo entirely — they need Draco/meshopt compression and texture downscaling before they can be added back at all.
 - The Groq free tier has rate limits; classification gracefully falls back to a manual Realm picker if a call fails, but heavy concurrent demo traffic could hit that fallback more often.
 - No native mobile app — the web app is responsive, but the 3D World Map's camera controls are tuned primarily for mouse/trackpad and touch-drag on tablets.
 - A shard-spending economy (a "shop") is scaffolded conceptually but not yet implemented.
