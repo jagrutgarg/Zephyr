@@ -346,7 +346,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
     <div className="relative min-h-screen pb-20" style={{ background: '#020617', color: 'white', overflowX: 'hidden' }}>
       {realm && <RealmBackground slug={slug} accentColor={accent} />}
 
-      <div className="relative z-10 max-w-4xl mx-auto pt-14 px-6 pb-10">
+      <div className="relative z-10 max-w-6xl mx-auto pt-14 px-6 md:px-12 pb-10">
          <motion.button
             onClick={() => router.push('/dashboard')}
             whileHover={{ x: -3 }}
@@ -372,22 +372,24 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
              </div>
          )}
 
-         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-10 lg:mb-12 items-start justify-between">
+         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 mb-10 lg:mb-12 items-center justify-between">
             {/* Left Column: Info + Buttons */}
-            <div className="flex-1 flex flex-col gap-6 w-full lg:max-w-xl">
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem' }}>
+            <div className="flex-1 flex flex-col gap-6 w-full lg:max-w-2xl">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                     <div style={{
-                        width: '56px', height: '56px', borderRadius: '50%', flexShrink: 0,
+                        width: '64px', height: '64px', borderRadius: '50%', flexShrink: 0,
                         background: `radial-gradient(circle, ${accent}30 0%, rgba(15,23,42,0.9) 75%)`,
                         border: `2px solid ${accent}`, boxShadow: `0 0 20px ${accent}60`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1.4rem', fontWeight: 'bold', color: accent,
+                        fontSize: '1.6rem', fontWeight: 'bold', color: accent,
                     }}>
                         {realm?.guardian?.[0] || '?'}
                     </div>
-                    <div>
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2" style={{ textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)`, lineHeight: 1.1 }}>{realm?.name}</h1>
-                      <p className="text-slate-300 font-medium text-sm sm:text-base leading-snug mb-2" style={{ maxWidth: '420px' }}>
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 truncate" style={{ textShadow: `0 0 24px ${accent}70, 0 2px 8px rgba(0,0,0,0.6)`, lineHeight: 1.1 }}>
+                          {realm?.name}
+                      </h1>
+                      <div className="text-slate-300 font-medium text-sm sm:text-base leading-snug mb-2 w-full lg:w-[90%] flex flex-wrap" style={{ whiteSpace: 'normal' }}>
                           {realm?.attribute === "Strength" && "Train your body and conquer physical challenges."}
                           {realm?.attribute === "Intellect" && "Expand your mind, read, and learn new skills."}
                           {realm?.attribute === "Vitality" && "Focus on health, wellness, and self-care routines."}
@@ -396,7 +398,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                           {realm?.attribute === "Connection" && "Spend time with others and nurture relationships."}
                           {realm?.attribute === "Exploration" && "Travel, try new things, and step out of your comfort zone."}
                           {realm?.attribute === "Miscellany" && "Handle the unclassified, the errands, and the odds and ends."}
-                      </p>
+                      </div>
                       <p className="text-slate-500 text-xs sm:text-sm font-semibold tracking-wide uppercase">Guarded by {realm?.guardian}</p>
                     </div>
                 </div>
