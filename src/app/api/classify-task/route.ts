@@ -9,8 +9,7 @@ const KEYWORD_FALLBACK: { slug: string; keywords: string[] }[] = [
   { slug: "celestial_kingdom", keywords: ["sleep", "meditate", "health", "doctor", "rest", "self-care", "water", "eat", "diet"] },
   { slug: "dreaming_isles", keywords: ["draw", "paint", "music", "write", "sketch", "design", "create", "compose", "art"] },
   { slug: "timeless_realm", keywords: ["clean", "budget", "bills", "admin", "organize", "plan", "schedule", "finance", "chore", "laundry"] },
-  { slug: "neo_mystica", keywords: ["call", "meet", "friend", "family", "email", "message", "social", "network", "team"] },
-  { slug: "xyran_frontier", keywords: ["travel", "explore", "new skill", "trip", "adventure", "hobby"] },
+  { slug: "xyran_frontier", keywords: ["travel", "explore", "new skill", "trip", "adventure", "hobby", "call", "meet", "friend", "family", "email", "message", "social", "network", "team"] },
 ];
 
 function fallbackClassify(task: string): { realm_slug: string; attribute: string } {

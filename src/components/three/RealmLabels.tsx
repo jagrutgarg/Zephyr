@@ -6,8 +6,6 @@ import { REALMS } from "@/lib/realms";
 // Island node positions traced from aetheria_map.glb (see RealmTowers.tsx
 // for the same coordinates used to place towers) — floated well above each
 // island's own translation so the label clears any tower model beneath it.
-// Neo-Mystica and Wandering Isles have no island geometry in this map, so
-// they're not placed here.
 export const LABEL_POSITIONS: Record<string, [number, number, number]> = {
   astral_library: [-27, 23, -46],
   enchanted_woods: [-37, 23, -10],
@@ -15,8 +13,6 @@ export const LABEL_POSITIONS: Record<string, [number, number, number]> = {
   timeless_realm: [-9, 23, 39],
   xyran_frontier: [42, 23, 16],
   dreaming_isles: [16, 23, 49],
-  neo_mystica: [65, 23, 30],
-  wandering_isles: [-20, 23, -65],
 };
 
 /**

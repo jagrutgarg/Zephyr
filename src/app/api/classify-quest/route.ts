@@ -39,12 +39,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, reason: "unavailable" });
   }
 
-  const wandering = (realms as RealmRow[]).find((r) => r.slug === "wandering_isles");
   const realmList = (realms as RealmRow[])
     .map((r) => `${r.id} — ${r.name}${r.description ? `: ${r.description}` : ""}`)
     .join("\n");
 
-  const systemPrompt = `You classify a short real-life task description into exactly one Realm from this list (id — name: attribute description):\n${realmList}\n\nRules:\n- Pick the single best thematic match by realm id.\n- If the task is genuinely ambiguous between two realms, still pick the better thematic match rather than defaulting to any catch-all realm.\n${wandering ? `- Only if the task clearly does not fit any specific Realm above (e.g. a one-off errand, or truly miscellaneous), classify it as ${wandering.id} (${wandering.name}) instead of forcing a poor fit.\n` : ""}- Also suggest a difficulty tier based on the phrasing: "easy" for quick/small tasks, "normal" for typical tasks, "hard" for tasks implying significant effort or scope.\n- Respond with ONLY a JSON object, no other text, no markdown fences: {"realm_id": "<uuid>", "confidence": "high"|"medium"|"low", "difficulty": "easy"|"normal"|"hard"}`;
+  const systemPrompt = `You classify a short real-life task description into exactly one Realm from this list (id — name: attribute description):\n${realmList}\n\nRules:\n- Pick the single best thematic match by realm id.\n- If the task is genuinely ambiguous between two realms, still pick the better thematic match.\n- Also suggest a difficulty tier based on the phrasing: "easy" for quick/small tasks, "normal" for typical tasks, "hard" for tasks implying significant effort or scope.\n- Respond with ONLY a JSON object, no other text, no markdown fences: {"realm_id": "<uuid>", "confidence": "high"|"medium"|"low", "difficulty": "easy"|"normal"|"hard"}`;
 
   try {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {

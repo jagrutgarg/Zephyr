@@ -28,15 +28,6 @@ const GUARDIAN_LINES: Record<string, string[]> = {
     "Ancient ink dries on your latest accomplishment.",
     "The Astral halls chime softly with fresh insight.",
   ],
-  "AX-7 Ancient Machine": [
-    "Connection registered. Bond strength increasing.",
-    "AX-7 logs this moment as significant.",
-    "Signal received. Relationship: reinforced.",
-    "The Ancient Machine hums — a rare sound of approval.",
-    "Data point confirmed: you showed up for your realm.",
-    "System diagnostics green: efficiency optimal.",
-    "Core matrices synchronize with your effort.",
-  ],
   "The Star Wanderer": [
     "A new horizon, claimed.",
     "The Frontier widens because you stepped into it.",
@@ -64,19 +55,17 @@ const GUARDIAN_LINES: Record<string, string[]> = {
     "Vibrant hues bloom across the sky.",
     "Inspiration surges like a tide across the realm.",
   ],
-  "The Wayfinder": [
-    "Even scattered things deserve their due. Well done.",
-    "The Wayfinder marks the path, however small.",
-    "Not every task is grand — this one still mattered.",
-    "Loose ends, tied. The Isles drift on.",
-    "Handled. The Wayfinder moves on to the next horizon.",
-    "Every step, no matter how small, advances the voyage.",
-    "The compass needle settles, pointing true.",
-  ],
 };
 
+const GENERIC_FALLBACK_LINES = [
+  "Well done.",
+  "Handled. On to the next horizon.",
+  "Every step, no matter how small, advances the voyage.",
+  "Not every task is grand — this one still mattered.",
+];
+
 export function pickGuardianLine(guardian: string): string {
-  const lines = GUARDIAN_LINES[guardian] || GUARDIAN_LINES["The Wayfinder"];
+  const lines = GUARDIAN_LINES[guardian] || GENERIC_FALLBACK_LINES;
   if (!lines || lines.length === 0) return "Well done.";
   return lines[Math.floor(Math.random() * lines.length)];
 }

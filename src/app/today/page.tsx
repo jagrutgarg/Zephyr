@@ -44,7 +44,7 @@ export default function TodayPage() {
   const [processingBulk, setProcessingBulk] = useState(false);
   
   const [quickAddText, setQuickAddText] = useState("");
-  const [wanderingIslesId, setWanderingIslesId] = useState<string | null>(null);
+  const [quickAddRealmId, setQuickAddRealmId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   const loadQuests = async () => {
@@ -66,8 +66,8 @@ export default function TodayPage() {
 
     if (data) setQuests(data as any);
 
-    const { data: wandering } = await supabase.from("realms").select("id").eq("slug", "wandering_isles").single();
-    if (wandering) setWanderingIslesId(wandering.id);
+    const { data: quickAddRealm } = await supabase.from("realms").select("id").eq("slug", "xyran_frontier").single();
+    if (quickAddRealm) setQuickAddRealmId(quickAddRealm.id);
 
     setLoading(false);
   };
@@ -143,7 +143,7 @@ export default function TodayPage() {
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const title = quickAddText.trim();
-    if (!title || !wanderingIslesId) return;
+    if (!title || !quickAddRealmId) return;
 
     setAdding(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -151,7 +151,7 @@ export default function TodayPage() {
 
     const payload = {
       user_id: user.id,
-      realm_id: wanderingIslesId,
+      realm_id: quickAddRealmId,
       title,
       description: "",
       difficulty: "normal" as const,
@@ -446,7 +446,7 @@ export default function TodayPage() {
           <form onSubmit={handleQuickAdd} style={{ display: "flex", gap: "0.6rem", marginBottom: "1rem" }}>
             <div style={{ position: "relative", flex: 1 }}>
               <Plus size={16} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#8b5cf6" }} />
-              <input className="form-input" style={{ paddingLeft: "2.2rem" }} placeholder="Quick-add a Quest — press Enter (goes to Wandering Isles)" value={quickAddText} onChange={(e) => setQuickAddText(e.target.value)} disabled={adding} />
+              <input className="form-input" style={{ paddingLeft: "2.2rem" }} placeholder="Quick-add a Quest — press Enter (goes to Xyran Frontier)" value={quickAddText} onChange={(e) => setQuickAddText(e.target.value)} disabled={adding} />
             </div>
           </form>
         )}

@@ -4,9 +4,7 @@ export type Attribute =
   | "Vitality"
   | "Creativity"
   | "Discipline"
-  | "Connection"
-  | "Exploration"
-  | "Miscellany";
+  | "Exploration";
 
 export type RealmDef = {
   id: string; // matches realms.slug in Supabase
@@ -22,12 +20,9 @@ export const REALMS: RealmDef[] = [
   { id: "enchanted_woods", name: "The Enchanted Woods", guardian: "The Fairy Keeper", themeColor: "#10b981", attribute: "Strength", x: 20, y: 30 },
   { id: "celestial_kingdom", name: "The Celestial Kingdom", guardian: "The Royal Dragon", themeColor: "#fbbf24", attribute: "Vitality", x: 50, y: 15 },
   { id: "astral_library", name: "The Astral Library", guardian: "The Archivist", themeColor: "#3b82f6", attribute: "Intellect", x: 80, y: 30 },
-  { id: "neo_mystica", name: "Neo-Mystica", guardian: "AX-7 Ancient Machine", themeColor: "#8b5cf6", attribute: "Connection", x: 85, y: 65 },
   { id: "xyran_frontier", name: "Xyran Frontier", guardian: "The Star Wanderer", themeColor: "#6366f1", attribute: "Exploration", x: 60, y: 85 },
   { id: "timeless_realm", name: "The Timeless Realm", guardian: "The Chronomancer", themeColor: "#14b8a6", attribute: "Discipline", x: 30, y: 85 },
   { id: "dreaming_isles", name: "The Dreaming Isles", guardian: "The Dream Weaver", themeColor: "#f472b6", attribute: "Creativity", x: 10, y: 60 },
-  // Catch-all Realm — deliberately placed at the map's margin, outside the core cluster of 7.
-  { id: "wandering_isles", name: "The Wandering Isles", guardian: "The Wayfinder", themeColor: "#94a3b8", attribute: "Miscellany", x: 95, y: 50 },
 ];
 
 export function findRealmBySlug(slug: string): RealmDef | undefined {
