@@ -8,31 +8,16 @@ import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
 const CHARACTER_MODEL_PATH = "/models/characters/ff_female_character.glb";
 
-function PrimitiveCharacter() {
-  return (
-    <>
-      {/* body */}
-      <mesh position={[0, 0, 0]} castShadow>
-        <capsuleGeometry args={[0.25, 0.5, 4, 8]} />
-        <meshStandardMaterial color="#a78bfa" />
-      </mesh>
-      {/* head */}
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <sphereGeometry args={[0.2, 16, 16]} />
-        <meshStandardMaterial color="#fde68a" />
-      </mesh>
-    </>
-  );
-}
-
 /**
  * Renders /models/characters/ff_female_character.glb if present, otherwise
- * the placeholder primitive body.
+ * nothing — a placeholder capsule+sphere body used to render here instead,
+ * but it read as an ugly, obviously-fake shape whenever the real model
+ * failed to load, which was worse than just showing nothing.
  */
 function CharacterVisual() {
   return (
-    <ModelErrorBoundary fallback={<PrimitiveCharacter />}>
-      <Suspense fallback={<PrimitiveCharacter />}>
+    <ModelErrorBoundary fallback={null}>
+      <Suspense fallback={null}>
         <GltfModel path={CHARACTER_MODEL_PATH} scale={0.12} exposure={0.6} />
       </Suspense>
     </ModelErrorBoundary>

@@ -1,31 +1,13 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Sparkles, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { OrbitCharacter } from "./OrbitCharacter";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { EnvironmentBackground } from "./EnvironmentBackground";
-
-function PrimitiveCenterpiece({ color, celebrating }: { color: string; celebrating: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.3;
-      meshRef.current.rotation.x += delta * 0.1;
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} castShadow>
-      <icosahedronGeometry args={[1, 1]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={celebrating ? 0.9 : 0.4} roughness={0.3} />
-    </mesh>
-  );
-}
 
 const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number]; exposure?: number }> = {
   astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 2.0, position: [0, -1.8, 0], exposure: 0.6 },
@@ -34,23 +16,23 @@ const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; positio
 };
 
 /**
- * Renders /models/realms/<slug>.glb if present, otherwise the placeholder
- * icosahedron. Drop a .glb at that path and update KNOWN_REALM_MODELS.
+ * Renders /models/realms/<slug>.glb if present, otherwise nothing — a
+ * placeholder glowing icosahedron used to render here instead, but it read
+ * as an obviously-fake shape whenever the real model failed to load, which
+ * was worse than just showing nothing. Drop a .glb at that path and add it
+ * to KNOWN_REALM_MODELS.
  */
 function Centerpiece({ realmSlug, color, celebrating }: { realmSlug: string; color: string; celebrating: boolean }) {
   const modelInfo = KNOWN_REALM_MODELS[realmSlug];
+  if (!modelInfo) return celebrating ? <Sparkles count={80} scale={4} size={4} speed={0.6} color={color} /> : null;
 
   return (
     <>
-      {modelInfo ? (
-        <ModelErrorBoundary fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
-          <Suspense fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
-            <GltfModel path={modelInfo.path} scale={modelInfo.scale} position={modelInfo.position} exposure={modelInfo.exposure ?? 0.6} />
-          </Suspense>
-        </ModelErrorBoundary>
-      ) : (
-        <PrimitiveCenterpiece color={color} celebrating={celebrating} />
-      )}
+      <ModelErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <GltfModel path={modelInfo.path} scale={modelInfo.scale} position={modelInfo.position} exposure={modelInfo.exposure ?? 0.6} />
+        </Suspense>
+      </ModelErrorBoundary>
       {celebrating && <Sparkles count={80} scale={4} size={4} speed={0.6} color={color} />}
     </>
   );
@@ -93,12 +75,6 @@ export function RealmScene({
       <Centerpiece realmSlug={realmSlug} color={themeColor} celebrating={celebrating} />
 
       <OrbitCharacter radius={orbitRadius} startTs={startTs} durationMs={durationMs} onComplete={onOrbitComplete} />
-
-      {/* Ground void disc */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.85, 0]} receiveShadow>
-        <circleGeometry args={[6, 48]} />
-        <meshStandardMaterial color="#050a17" roughness={0.95} />
-      </mesh>
 
       {/* Free look: drag to rotate, scroll/pinch to zoom */}
       <OrbitControls
