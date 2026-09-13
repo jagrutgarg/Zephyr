@@ -8,6 +8,14 @@ import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
 const CHARACTER_MODEL_PATH = "/models/characters/ff_female_character.glb";
 
+// This is a full Sketchfab-exported scene bundle (9 separate mesh pieces
+// spanning an unusually large ~7-unit bounding range, not a clean single
+// upright character mesh), so there's no reliable single "character height"
+// to compute an exact fitting scale from — 0.06 is a smaller, conservative
+// guess after 0.12 read too large; adjust further based on how it actually
+// looks orbiting the centerpiece.
+const CHARACTER_SCALE = 0.06;
+
 /**
  * Renders /models/characters/ff_female_character.glb if present, otherwise
  * nothing — a placeholder capsule+sphere body used to render here instead,
@@ -18,7 +26,7 @@ function CharacterVisual() {
   return (
     <ModelErrorBoundary fallback={null}>
       <Suspense fallback={null}>
-        <GltfModel path={CHARACTER_MODEL_PATH} scale={0.12} exposure={0.6} />
+        <GltfModel path={CHARACTER_MODEL_PATH} scale={CHARACTER_SCALE} exposure={0.6} />
       </Suspense>
     </ModelErrorBoundary>
   );
