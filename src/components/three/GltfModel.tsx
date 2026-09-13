@@ -5,7 +5,7 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 if (typeof window !== "undefined") {
-  useGLTF.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.5/");
+  useGLTF.setDecoderPath("/draco/");
 }
 
 /**
