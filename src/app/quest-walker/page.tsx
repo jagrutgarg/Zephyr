@@ -10,6 +10,7 @@ import { DIFF_MAPPING, type Difficulty } from "@/lib/questDefaults";
 import { RealmScene } from "@/components/three/RealmScene";
 import { CelebrationOverlay } from "@/components/CelebrationOverlay";
 import { pickGuardianLine } from "@/lib/guardianLines";
+import { playSound } from "@/lib/audioUtil";
 
 type Step = "greeting" | "input" | "classifying" | "focus" | "celebrating";
 
@@ -166,6 +167,7 @@ export default function QuestWalkerPage() {
     const awardedXp = completion.awarded_xp ?? payload.xp_value;
     const awardedShards = completion.awarded_shards ?? payload.shard_value;
 
+    playSound("win");
     addShards(awardedShards);
     reduceVoid(2);
     gainRealmXP(realmRow.id, awardedXp, completion.leveled_up, completion.new_level);

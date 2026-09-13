@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { playSound } from "@/lib/audioUtil";
 
 type Phase = "picking" | "conflict" | "running" | "finalizing";
 
@@ -123,6 +124,7 @@ export function FocusSessionOverlay({
 
   const handleCancel = async () => {
     if (!confirm("Abandon this focus session? Your progress will not count.")) return;
+    playSound("void");
     await supabase.rpc("cancel_focus_session", { p_quest_id: questId });
     onCancelled();
   };

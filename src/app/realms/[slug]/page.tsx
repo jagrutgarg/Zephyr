@@ -13,6 +13,7 @@ import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule, Priority, PRIORITY_MAPPING,
 import { FocusSessionOverlay } from "@/components/FocusSessionOverlay";
 import { GuardianToast } from "@/components/GuardianToast";
 import { pickGuardianLine } from "@/lib/guardianLines";
+import { playSound } from "@/lib/audioUtil";
 
 type Quest = {
   id: string;
@@ -283,7 +284,9 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
     const q = quests.find(q => q.id === questId);
     if (q) {
       const nextCl = [...(q.checklist || [])];
-      nextCl[index] = { ...nextCl[index], done: !nextCl[index].done };
+      const isDone = !nextCl[index].done;
+      if (isDone) playSound("win"); else playSound("void");
+      nextCl[index] = { ...nextCl[index], done: isDone };
       updateQuestDetails(questId, { checklist: nextCl });
     }
   };
@@ -300,11 +303,13 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       e.stopPropagation();
       if (!confirm("Archive this quest? It can be restored anytime.")) return;
       
+      playSound("void");
       setQuests(prev => prev.filter(q => q.id !== questId));
       await supabase.from("quests").update({ is_archived: true }).eq("id", questId);
   };
 
   const handleComplete = async (questId: string) => {
+      playSound("win");
       setQuests(prev => prev.map(q => q.id === questId ? { ...q, is_completed: true } : q));
       const { data, error } = await supabase.rpc('complete_quest', { p_quest_id: questId });
       if (error) {
