@@ -9,21 +9,24 @@ import { RealmBackground } from "@/components/RealmBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
-import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule } from "@/lib/questDefaults";
+import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule, Priority, PRIORITY_MAPPING } from "@/lib/questDefaults";
 import { FocusSessionOverlay } from "@/components/FocusSessionOverlay";
 import { GuardianToast } from "@/components/GuardianToast";
 import { pickGuardianLine } from "@/lib/guardianLines";
-import { Swords, Repeat } from "lucide-react";
+import { Swords, Repeat, Archive, Tag } from "lucide-react";
 
 type Quest = {
   id: string;
   title: string;
   description: string;
   difficulty: "easy" | "normal" | "hard";
+  priority: Priority;
+  tags: string[];
   xp_value: number;
   shard_value: number;
   due_date: string | null;
   is_completed: boolean;
+  is_archived?: boolean;
   repeat_rule: string;
 };
 
@@ -56,6 +59,8 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState<"easy"|"normal"|"hard">("normal");
+  const [priority, setPriority] = useState<Priority>("medium");
+  const [tagsInput, setTagsInput] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [repeatRule, setRepeatRule] = useState("none");
   const [repeatDays, setRepeatDays] = useState<string[]>([]);
@@ -71,6 +76,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       .from("quests")
       .select("*")
       .eq("realm_id", realmId)
+      .eq("is_archived", false)
       .order("created_at", { ascending: false });
     if (questData) setQuests(questData);
   };
@@ -107,18 +113,18 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       }
       setRealm(realmData);
 
-      // Fetch Quests
+      // Fetch Active Quests
       const { data: questData } = await supabase
         .from("quests")
         .select("*")
         .eq("realm_id", realmData.id)
+        .eq("is_archived", false)
         .order("created_at", { ascending: false });
 
       if (questData) setQuests(questData);
       setLoading(false);
 
-      // Resume/surface any focus session — active or freshly completed —
-      // wherever it may belong (this realm, another realm, or nowhere).
+      // Resume/surface focus session
       const { data: session } = await supabase.rpc("get_active_focus_session");
       if (!session || session.status === "none") return;
 
@@ -155,6 +161,8 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setTitle(q.title);
         setDescription(q.description || "");
         setDifficulty(q.difficulty);
+        setPriority(q.priority || "medium");
+        setTagsInput((q.tags || []).join(", "));
         setDueDate(q.due_date ? q.due_date.split('T')[0] : "");
         if (q.repeat_rule?.startsWith("weekly:")) {
           setRepeatRule("weekly");
@@ -168,6 +176,8 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setTitle("");
         setDescription("");
         setDifficulty("normal");
+        setPriority("medium");
+        setTagsInput("");
         setDueDate("");
         setRepeatRule("none");
         setRepeatDays([]);
@@ -195,6 +205,10 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
     if (!user || !realm) return;
 
     const finalRepeatRule = repeatRule === "weekly" ? `weekly:${repeatDays.join(",")}` : repeatRule;
+    const parsedTags = tagsInput
+      .split(",")
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
 
     const payload = {
         user_id: user.id,
@@ -202,23 +216,23 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         title,
         description,
         difficulty,
+        priority,
+        tags: parsedTags,
         xp_value: DIFF_MAPPING[difficulty].xp,
         shard_value: DIFF_MAPPING[difficulty].shard,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
         repeat_rule: finalRepeatRule,
+        is_archived: false,
     };
 
     if (editingQuest) {
-        // Edit Optimistic
         setQuests(prev => prev.map(q => q.id === editingQuest.id ? { ...q, ...payload } : q));
         setIsModalOpen(false);
         const { error } = await supabase.from("quests").update(payload).eq("id", editingQuest.id);
         if (error) {
             alert("The Aether didn't respond. Try again.");
-            // rollback skipped for MVP brevity
         }
     } else {
-        // Add Optimistic (fake ID initially)
         const fakeId = "temp-" + Date.now();
         const optimisticQuest = { ...payload, id: fakeId, is_completed: false } as Quest;
         setQuests([optimisticQuest, ...quests]);
@@ -234,11 +248,11 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
     }
   };
 
-  const handleDelete = async (questId: string) => {
-      if (!confirm("Are you sure you want to abandon this quest?")) return;
+  const handleArchive = async (questId: string) => {
+      if (!confirm("Archive this quest? It can be restored anytime.")) return;
       
       setQuests(prev => prev.filter(q => q.id !== questId));
-      await supabase.from("quests").delete().eq("id", questId);
+      await supabase.from("quests").update({ is_archived: true }).eq("id", questId);
   };
 
   const handleComplete = async (questId: string) => {
@@ -424,7 +438,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                      </button>
                                  )}
                                  <button onClick={() => openModal(q)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><Edit2 size={18} /></button>
-                                 <button onClick={() => handleDelete(q.id)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                 <button onClick={() => handleArchive(q.id)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={18} /></button>
                              </div>
                          </div>
                      </motion.div>
@@ -438,7 +452,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                          {completedQuests.map(q => (
                              <div key={q.id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: `1px solid ${realm?.accent_color}30`, borderLeft: `3px solid ${realm?.accent_color}80`, borderRadius: '12px', padding: '0.9rem 1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                  <h3 className="line-through text-slate-300">{q.title}</h3>
-                                 <button onClick={() => handleDelete(q.id)} aria-label="Delete quest" style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                 <button onClick={() => handleArchive(q.id)} aria-label="Delete quest" style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={16} /></button>
                              </div>
                          ))}
                      </div>
@@ -480,21 +494,33 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                 </select>
                             </div>
                             <div className="form-group flex-1 mb-0">
-                                <div className="flex justify-between items-center">
-                                    <label className="form-label">Due Date (Optional)</label>
-                                    {dueDate && (
-                                        <button 
-                                            type="button"
-                                            onClick={() => handleAddToCalendar({ title, description, dueDate })}
-                                            title="Add to Google Calendar"
-                                            style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0 }}
-                                        >
-                                            <CalendarPlus size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                                <input type="date" className="form-input mt-1" style={{paddingLeft: '1rem'}} value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                                <label className="form-label">Priority</label>
+                                <select className="form-input form-select" style={{paddingLeft: '1rem'}} value={priority} onChange={e => setPriority(e.target.value as Priority)}>
+                                    <option value="low">Low Priority</option>
+                                    <option value="medium">Medium Priority</option>
+                                    <option value="high">High Priority</option>
+                                </select>
                             </div>
+                        </div>
+                        <div className="form-group mb-0">
+                            <div className="flex justify-between items-center">
+                                <label className="form-label">Due Date (Optional)</label>
+                                {dueDate && (
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAddToCalendar({ title, description, dueDate })}
+                                        title="Add to Google Calendar"
+                                        style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0 }}
+                                    >
+                                        <CalendarPlus size={16} />
+                                    </button>
+                                )}
+                            </div>
+                            <input type="date" className="form-input mt-1" style={{paddingLeft: '1rem'}} value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                        </div>
+                        <div className="form-group mb-0">
+                            <label className="form-label">Tags (comma-separated)</label>
+                            <input type="text" className="form-input" style={{paddingLeft: '1rem'}} value={tagsInput} onChange={e => setTagsInput(e.target.value)} placeholder="e.g. work, reading, urgent" />
                         </div>
                         <div className="form-group mb-0">
                             <label className="form-label">Repeats</label>

@@ -4,6 +4,10 @@ import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
+if (typeof window !== "undefined") {
+  useGLTF.setDecoderPath("/draco/");
+}
+
 /**
  * Loads any .glb from /public/models and renders its full scene graph.
  * Wrap in <ModelErrorBoundary> + <Suspense> — useGLTF throws while loading

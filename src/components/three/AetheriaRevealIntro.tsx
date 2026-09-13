@@ -49,6 +49,11 @@ const FogBlurShader = {
   `,
 };
 
+if (typeof window !== "undefined") {
+  useGLTF.setDecoderPath("/draco/");
+  useGLTF.preload("/models/environment/aetheria_map.glb", true);
+}
+
 /**
  * R3F-friendly implementation of the Aetheria page-load reveal. It loads the
  * supplied GLB, logs its cloud nodes, and hands rendering back to R3F after
