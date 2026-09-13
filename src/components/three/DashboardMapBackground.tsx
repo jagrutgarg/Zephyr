@@ -7,6 +7,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { AetheriaRevealIntro } from "./AetheriaRevealIntro";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { RealmTowers } from "./RealmTowers";
+import { RealmLabels } from "./RealmLabels";
 import { VoidVortex } from "./VoidVortex";
 import { KeyboardMapTour } from "./KeyboardMapTour";
 
@@ -48,6 +49,7 @@ export function DashboardMapBackground({ awakenedSlugs, voidPercentage = 0 }: { 
           </Suspense>
         </ModelErrorBoundary>
         <RealmTowers awakenedSlugs={awakenedSlugs} />
+        <RealmLabels />
         <VoidVortex percentage={voidPercentage} />
         <KeyboardMapTour controlsRef={controlsRef} />
         <OrbitControls
