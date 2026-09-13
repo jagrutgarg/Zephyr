@@ -20,21 +20,13 @@ type TowerPlacement = {
 
 // Extend this as more Realm tower .glb files become available.
 //
-// IMPORTANT — this list must stay VERY conservative. The World Map's
-// shared Canvas has crashed to a fully blank scene (map, ocean, every
-// tower, all of it — not just the offending model) twice already: once
-// when astral_library.glb's full-size 135MB upgrade was always-visible,
-// and again when xyran_frontier.glb (24MB) was added as a tower while
-// awakened. Both are/were large, uncompressed, unverified source assets.
-// timeless_realm.glb (~105MB) and celestial_kingdom.glb (~119MB) are in
-// the same weight class and are NOT included here for that reason — they
-// still render fine in RealmScene.tsx's quest-walker focus scene, which
-// is an isolated Canvas loading at most one heavy model at a time, a much
-// safer context than this shared, multi-tower World Map scene.
-// Do not add anything here without confirming file size stays in the
-// low tens-of-MB range, ideally after Draco/meshopt compression (see
-// README limitations) — a "just try it" addition here has broken the
-// live map for real users twice now.
+// NOTE: the World Map's shared Canvas has previously gone fully blank
+// (map, ocean, every tower — not just the offending model) when a heavy,
+// unverified asset was added here (the old 135MB astral_library.glb
+// upgrade, and a since-replaced 24MB xyran_frontier.glb). If the map goes
+// blank again after awakening one of the entries below, pull that specific
+// entry back out first to isolate which one — don't assume it's all of
+// them at once.
 const TOWER_PLACEMENTS: TowerPlacement[] = [
   {
     realmSlug: "astral_library",
@@ -57,6 +49,32 @@ const TOWER_PLACEMENTS: TowerPlacement[] = [
     scale: 0.6,
     modelPath: "/models/environment/enchanted_woods_island.glb",
     exposure: 0.12,
+  },
+  {
+    realmSlug: "xyran_frontier",
+    // Xyran_Frontier Island node: translation [42, 12, 16], yaw ~22.9°.
+    position: [42, 17, 16],
+    rotationY: 0.4,
+    scale: 0.02,
+    exposure: 0.6,
+  },
+  {
+    realmSlug: "timeless_realm",
+    // Timeless_Realm Island node: translation [-9, 8, 39], yaw ~-23°.
+    // battle_monument_square.glb, 45MB — unverified in this shared scene.
+    position: [-9, 13, 39],
+    rotationY: -0.4,
+    scale: 0.05,
+    exposure: 0.6,
+  },
+  {
+    realmSlug: "celestial_kingdom",
+    // Celestial_Kingdom Island node: translation [34, 22, -21], yaw ~5.7°.
+    // lennox_castle_hospital.glb, 39MB — unverified in this shared scene.
+    position: [34, 27, -21],
+    rotationY: 0.1,
+    scale: 0.05,
+    exposure: 0.6,
   },
 ];
 
