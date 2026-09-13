@@ -5,6 +5,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
+import { REALMS } from "@/lib/realms";
+import { LABEL_POSITIONS } from "./RealmLabels";
+
 type PointOfInterest = {
   name: string;
   /** Where the camera looks. */
@@ -13,16 +16,18 @@ type PointOfInterest = {
   position: [number, number, number];
 };
 
-// Default centered overview, then each landmark in turn — matches the .glb's
-// own authored islands (see RealmTowers.tsx for the traced coordinates).
-// Zoomed-in offsets keep camera-to-target distance safely above the
-// OrbitControls minDistance (see DashboardMapBackground) — otherwise
-// OrbitControls.update() clamps the radius back out on the very next
-// frame and the "zoom in" never visibly happens.
+const overviewPOI: PointOfInterest = { name: "Aetheria Overview", target: [0, 0, 0], position: [0, 48, 107] };
+
 const POINTS_OF_INTEREST: PointOfInterest[] = [
-  { name: "Aetheria Overview", target: [0, 0, 0], position: [0, 48, 107] },
-  { name: "The Enchanted Woods", target: [-37, 19, -13], position: [-37, 37, 29] },
-  { name: "The Astral Library", target: [-27, 20, -46], position: [-27, 38, -4] },
+  overviewPOI,
+  ...REALMS.map((r): PointOfInterest => {
+    const pos = LABEL_POSITIONS[r.id] || [0, 20, 0];
+    return {
+      name: r.name,
+      target: [pos[0], pos[1] - 10, pos[2]],
+      position: [pos[0] * 1.3, pos[1] + 15, pos[2] * 1.3 + 30],
+    };
+  })
 ];
 
 /**

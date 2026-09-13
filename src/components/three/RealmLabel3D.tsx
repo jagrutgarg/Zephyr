@@ -1,6 +1,8 @@
 "use client";
 
 import { Billboard, Text } from "@react-three/drei";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 /**
  * A Realm's name floating above its island, rendered as real text in the
@@ -12,18 +14,28 @@ import { Billboard, Text } from "@react-three/drei";
  * limits from oversized assets more than once).
  */
 export function RealmLabel3D({
+  slug,
   position,
   text,
   color,
   fontSize = 3.2,
 }: {
+  slug: string;
   position: [number, number, number];
   text: string;
   color: string;
   fontSize?: number;
 }) {
+  const router = useRouter();
+  const [hovered, setHovered] = useState(false);
+
   return (
     <Billboard position={position} follow>
+      <group
+        onClick={(e) => { e.stopPropagation(); router.push(`/realms/${slug}`); }}
+        onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = "pointer"; setHovered(true); }}
+        onPointerOut={() => { document.body.style.cursor = "auto"; setHovered(false); }}
+      >
       {/* shadow layer, offset back+down to read as depth/extrusion */}
       <Text
         position={[0.12, -0.12, -0.15]}
@@ -39,7 +51,7 @@ export function RealmLabel3D({
       {/* face layer */}
       <Text
         fontSize={fontSize}
-        color={color}
+        color={hovered ? "#ffffff" : color}
         anchorX="center"
         anchorY="middle"
         outlineWidth={fontSize * 0.03}
@@ -48,6 +60,7 @@ export function RealmLabel3D({
       >
         {text}
       </Text>
+      </group>
     </Billboard>
   );
 }

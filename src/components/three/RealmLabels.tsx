@@ -8,13 +8,15 @@ import { REALMS } from "@/lib/realms";
 // island's own translation so the label clears any tower model beneath it.
 // Neo-Mystica and Wandering Isles have no island geometry in this map, so
 // they're not placed here.
-const LABEL_POSITIONS: Record<string, [number, number, number]> = {
-  astral_library: [-27, 34, -46],
-  enchanted_woods: [-37, 32, -13],
-  celestial_kingdom: [34, 40, -21],
-  timeless_realm: [-9, 26, 39],
-  xyran_frontier: [42, 30, 16],
-  dreaming_isles: [25, 33, 47],
+export const LABEL_POSITIONS: Record<string, [number, number, number]> = {
+  astral_library: [-27, 23, -46],
+  enchanted_woods: [-37, 23, -10],
+  celestial_kingdom: [34, 23, -25],
+  timeless_realm: [-9, 23, 39],
+  xyran_frontier: [42, 23, 16],
+  dreaming_isles: [16, 23, 49],
+  neo_mystica: [65, 23, 30],
+  wandering_isles: [-20, 23, -65],
 };
 
 /**
@@ -24,9 +26,10 @@ const LABEL_POSITIONS: Record<string, [number, number, number]> = {
 export function RealmLabels() {
   return (
     <>
-      {REALMS.filter((r) => LABEL_POSITIONS[r.id]).map((r) => (
-        <RealmLabel3D key={r.id} position={LABEL_POSITIONS[r.id]} text={r.name} color={r.themeColor} />
-      ))}
+      {REALMS.map((r) => {
+        const pos = LABEL_POSITIONS[r.id] || [0, 20, 0];
+        return <RealmLabel3D key={r.id} slug={r.id} position={pos} text={r.name} color={r.themeColor} />;
+      })}
     </>
   );
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { MapParallax, RealmNode } from "@/components/MapComponents";
+import { MapParallax } from "@/components/MapComponents";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { LogOut, Plus } from "lucide-react";
 import { useGameStore } from "@/store/useGameStore";
@@ -251,14 +251,7 @@ export default function DashboardPage() {
           />
       )}
 
-      {/* All 8 Realms are always visible — but a Realm's Tower only manifests once awakened by a first completed Quest */}
-      {REALMS.map(realm => {
-         const progress = progressBySlug[realm.id];
-         const nodeLevel = progress ? progress.current_level : 1;
-
-         return <RealmNode key={realm.id} {...realm} level={nodeLevel} awakened={visibleTowerSlugs.has(realm.id)} />
-      })}
-
+      {/* Realm nodes have been replaced by the 3D RealmLabels that are clickable */}
       <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1, color: '#64748b', fontSize: '0.8rem', pointerEvents: 'none' }}>
         Drag to explore the map · Scroll to zoom · ← → to tour landmarks
       </div>
