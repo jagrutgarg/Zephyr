@@ -4,16 +4,15 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Check, Trash2, Edit2, Calendar, CalendarPlus } from "lucide-react";
+import { Plus, X, Check, Trash2, Edit2, Calendar, CalendarPlus, Swords, Repeat, Archive, Tag, ChevronDown, ChevronUp, Lock, CheckSquare } from "lucide-react";
 import { RealmBackground } from "@/components/RealmBackground";
 import { useGameStore } from "@/store/useGameStore";
 import { ThematicClock } from "@/components/Clock";
 import { buildGoogleCalendarUrl } from "@/lib/googleCalendar";
-import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule, Priority, PRIORITY_MAPPING } from "@/lib/questDefaults";
+import { DIFF_MAPPING, WEEKDAYS, describeRepeatRule, Priority, PRIORITY_MAPPING, ChecklistItem } from "@/lib/questDefaults";
 import { FocusSessionOverlay } from "@/components/FocusSessionOverlay";
 import { GuardianToast } from "@/components/GuardianToast";
 import { pickGuardianLine } from "@/lib/guardianLines";
-import { Swords, Repeat, Archive, Tag } from "lucide-react";
 
 type Quest = {
   id: string;
@@ -22,6 +21,9 @@ type Quest = {
   difficulty: "easy" | "normal" | "hard";
   priority: Priority;
   tags: string[];
+  notes: string | null;
+  checklist: ChecklistItem[];
+  blocked_by: string | null;
   xp_value: number;
   shard_value: number;
   due_date: string | null;
@@ -50,6 +52,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const [realm, setRealm] = useState<any>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedQuests, setExpandedQuests] = useState<Set<string>>(new Set());
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,6 +67,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   const [dueDate, setDueDate] = useState("");
   const [repeatRule, setRepeatRule] = useState("none");
   const [repeatDays, setRepeatDays] = useState<string[]>([]);
+  const [blockedBy, setBlockedBy] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState("");
 
   // Focus Session state
@@ -82,7 +86,6 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   };
 
   const applyCompletionRewards = (completedQuest: Quest, completion: any, realmData: any) => {
-    // The server may reduce these below the quest's nominal reward under high Void.
     addShards(completion.awarded_shards ?? completedQuest.shard_value);
     reduceVoid(2);
     gainRealmXP(realmData.id, completion.awarded_xp ?? completedQuest.xp_value, completion.leveled_up, completion.new_level);
@@ -152,8 +155,18 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       }
     }
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, router, supabase]);
+
+  const toggleExpand = (id: string, e: React.MouseEvent) => {
+    // Only expand if clicking the card background, not buttons
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('textarea')) return;
+    setExpandedQuests(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const openModal = (q?: Quest) => {
     if (q) {
@@ -164,6 +177,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setPriority(q.priority || "medium");
         setTagsInput((q.tags || []).join(", "));
         setDueDate(q.due_date ? q.due_date.split('T')[0] : "");
+        setBlockedBy(q.blocked_by || "");
         if (q.repeat_rule?.startsWith("weekly:")) {
           setRepeatRule("weekly");
           setRepeatDays(q.repeat_rule.slice(7).split(","));
@@ -179,6 +193,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setPriority("medium");
         setTagsInput("");
         setDueDate("");
+        setBlockedBy("");
         setRepeatRule("none");
         setRepeatDays([]);
     }
@@ -218,6 +233,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         difficulty,
         priority,
         tags: parsedTags,
+        blocked_by: blockedBy || null,
         xp_value: DIFF_MAPPING[difficulty].xp,
         shard_value: DIFF_MAPPING[difficulty].shard,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
@@ -229,16 +245,14 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
         setQuests(prev => prev.map(q => q.id === editingQuest.id ? { ...q, ...payload } : q));
         setIsModalOpen(false);
         const { error } = await supabase.from("quests").update(payload).eq("id", editingQuest.id);
-        if (error) {
-            alert("The Aether didn't respond. Try again.");
-        }
+        if (error) alert("The Aether didn't respond. Try again.");
     } else {
         const fakeId = "temp-" + Date.now();
-        const optimisticQuest = { ...payload, id: fakeId, is_completed: false } as Quest;
+        const optimisticQuest = { ...payload, id: fakeId, is_completed: false, checklist: [], notes: "" } as Quest;
         setQuests([optimisticQuest, ...quests]);
         setIsModalOpen(false);
         
-        const { data, error } = await supabase.from("quests").insert([payload]).select().single();
+        const { data, error } = await supabase.from("quests").insert([{ ...payload, checklist: [], notes: "" }]).select().single();
         if (error) {
             alert("The Aether didn't respond. Try again.");
             setQuests(prev => prev.filter(q => q.id !== fakeId));
@@ -248,7 +262,42 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
     }
   };
 
-  const handleArchive = async (questId: string) => {
+  const updateQuestDetails = async (questId: string, updates: Partial<Quest>) => {
+    setQuests(prev => prev.map(q => q.id === questId ? { ...q, ...updates } : q));
+    await supabase.from("quests").update(updates).eq("id", questId);
+  };
+
+  const addChecklistItem = async (questId: string, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+      const val = e.currentTarget.value.trim();
+      e.currentTarget.value = "";
+      const q = quests.find(q => q.id === questId);
+      if (q) {
+        const nextCl = [...(q.checklist || []), { text: val, done: false }];
+        updateQuestDetails(questId, { checklist: nextCl });
+      }
+    }
+  };
+
+  const toggleChecklistItem = async (questId: string, index: number) => {
+    const q = quests.find(q => q.id === questId);
+    if (q) {
+      const nextCl = [...(q.checklist || [])];
+      nextCl[index] = { ...nextCl[index], done: !nextCl[index].done };
+      updateQuestDetails(questId, { checklist: nextCl });
+    }
+  };
+  
+  const removeChecklistItem = async (questId: string, index: number) => {
+      const q = quests.find(q => q.id === questId);
+      if (q) {
+          const nextCl = (q.checklist || []).filter((_, i) => i !== index);
+          updateQuestDetails(questId, { checklist: nextCl });
+      }
+  };
+
+  const handleArchive = async (questId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
       if (!confirm("Archive this quest? It can be restored anytime.")) return;
       
       setQuests(prev => prev.filter(q => q.id !== questId));
@@ -256,20 +305,14 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
   };
 
   const handleComplete = async (questId: string) => {
-      // Optimistic visual
       setQuests(prev => prev.map(q => q.id === questId ? { ...q, is_completed: true } : q));
-
-      // Server update
       const { data, error } = await supabase.rpc('complete_quest', { p_quest_id: questId });
-
       if (error) {
           alert("Failed to complete quest.");
-          // Rollback
           setQuests(prev => prev.map(q => q.id === questId ? { ...q, is_completed: false } : q));
       } else {
           const q = quests.find(q => q.id === questId);
           if (q) applyCompletionRewards(q, data, realm);
-          // Picks up a freshly spawned next occurrence if this was a recurring quest.
           if (realm) await refetchQuests(realm.id);
       }
   };
@@ -289,6 +332,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
 
   const activeQuests = quests.filter(q => !q.is_completed);
   const completedQuests = quests.filter(q => q.is_completed);
+  const activeQuestsMap = new Map(activeQuests.map(q => [q.id, q]));
 
   const accent = realm?.accent_color || '#8b5cf6';
 
@@ -297,7 +341,6 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       {realm && <RealmBackground slug={slug} accentColor={accent} />}
 
       <div className="relative z-10 max-w-4xl mx-auto pt-14 px-6 pb-10">
-         {/* Internal Header */}
          <motion.button
             onClick={() => router.push('/dashboard')}
             whileHover={{ x: -3 }}
@@ -377,72 +420,151 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.3rem' }}>Plant a seed of intention.</p>
                      </motion.div>
                  )}
-                 {activeQuests.map(q => (
-                     <motion.div 
-                        key={q.id}
-                        layout
-                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9, y: -20, filter: 'blur(5px)' }}
-                        whileHover={{ scale: 1.02, rotateX: 5, rotateY: 2 }}
-                        style={{ perspective: 800 }}
-                        className="mb-4"
-                     >
-                         <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', border: `1px solid ${realm?.accent_color}60`, borderRadius: '16px', padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: `0 4px 15px ${realm?.accent_color}10` }}>
-                             
-                             <div className="flex-1 flex gap-4 items-center">
-                                 <button onClick={() => handleComplete(q.id)} title="Mark Done Instantly" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${realm?.accent_color}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: realm?.accent_color, transition: 'all 0.2s', flexShrink: 0 }}>
-                                     <Check size={16} style={{opacity: 0}} />
-                                 </button>
-                                 <div>
-                                    <h3 className="text-lg font-bold">{q.title}</h3>
-                                    {q.description && <p className="text-sm text-slate-400 mt-1">{q.description}</p>}
-                                    <div className="flex gap-3 mt-2 text-xs">
-                                        <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)' }}>{q.difficulty.toUpperCase()} • XP {DIFF_MAPPING[q.difficulty].xp}</span>
-                                        {q.due_date && (
-                                           <span style={{ 
-                                               padding: '2px 8px', 
-                                               borderRadius: '12px', 
-                                               background: new Date(q.due_date) < new Date() ? 'rgba(239, 68, 68, 0.3)' : 'rgba(148, 163, 184, 0.2)', 
-                                               color: new Date(q.due_date) < new Date() ? '#fca5a5' : '#cbd5e1', 
-                                               display: 'flex', alignItems: 'center', gap: '4px',
-                                               border: new Date(q.due_date) < new Date() ? '1px solid rgba(239, 68, 68, 0.5)' : 'none'
-                                           }}>
-                                               <Calendar size={12}/> 
-                                               {new Date(q.due_date).toLocaleDateString()}
-                                               {new Date(q.due_date) < new Date() && " (Overdue)"}
-                                           </span>
+                 {activeQuests.map(q => {
+                     const isExpanded = expandedQuests.has(q.id);
+                     const blockingQuest = q.blocked_by && activeQuestsMap.get(q.blocked_by);
+                     const isBlocked = !!blockingQuest;
+                     const qPri = PRIORITY_MAPPING[q.priority || "medium"] || PRIORITY_MAPPING.medium;
+                     
+                     return (
+                         <motion.div 
+                            key={q.id}
+                            layout
+                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9, y: -20, filter: 'blur(5px)' }}
+                            className="mb-4"
+                            onClick={(e) => toggleExpand(q.id, e)}
+                            style={{ 
+                                background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', 
+                                border: `1px solid ${realm?.accent_color}60`, borderRadius: '16px', 
+                                boxShadow: `0 4px 15px ${realm?.accent_color}10`,
+                                overflow: 'hidden', cursor: 'default'
+                            }}
+                         >
+                             <div style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                 <div className="flex-1 flex gap-4 items-center">
+                                     <button 
+                                        onClick={(e) => { e.stopPropagation(); if (!isBlocked) handleComplete(q.id); }} 
+                                        title={isBlocked ? "Blocked quests cannot be completed" : "Mark Done Instantly"} 
+                                        disabled={isBlocked}
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${isBlocked ? '#64748b' : realm?.accent_color}`, background: 'transparent', cursor: isBlocked ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isBlocked ? '#64748b' : realm?.accent_color, transition: 'all 0.2s', flexShrink: 0 }}
+                                     >
+                                         {isBlocked ? <Lock size={14} /> : <Check size={16} style={{opacity: 0}} />}
+                                     </button>
+                                     <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                                            <h3 className="text-lg font-bold" style={{ color: isBlocked ? '#cbd5e1' : 'white' }}>{q.title}</h3>
+                                            <span style={{ padding: '1px 6px', borderRadius: '8px', background: qPri.bg, color: qPri.color, border: `1px solid ${qPri.border}`, fontSize: '0.65rem' }}>{qPri.label} Priority</span>
+                                        </div>
+                                        {q.description && <p className="text-sm text-slate-400 mt-1">{q.description}</p>}
+                                        {isBlocked && (
+                                            <p style={{ fontSize: '0.75rem', color: '#f43f5e', marginTop: '4px', fontWeight: 'bold' }}>
+                                                Blocked by: {blockingQuest.title}
+                                            </p>
                                         )}
-                                        {q.repeat_rule && q.repeat_rule !== 'none' && (
-                                           <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(139,92,246,0.2)', color: '#c4b5fd', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                               <Repeat size={12} /> {describeRepeatRule(q.repeat_rule)}
-                                           </span>
-                                        )}
-                                    </div>
+                                        <div className="flex gap-3 mt-2 text-xs flex-wrap">
+                                            <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)' }}>{q.difficulty.toUpperCase()} • XP {DIFF_MAPPING[q.difficulty].xp}</span>
+                                            {q.due_date && (
+                                               <span style={{ 
+                                                   padding: '2px 8px', borderRadius: '12px', 
+                                                   background: new Date(q.due_date) < new Date() ? 'rgba(239, 68, 68, 0.3)' : 'rgba(148, 163, 184, 0.2)', 
+                                                   color: new Date(q.due_date) < new Date() ? '#fca5a5' : '#cbd5e1', 
+                                                   display: 'flex', alignItems: 'center', gap: '4px',
+                                                   border: new Date(q.due_date) < new Date() ? '1px solid rgba(239, 68, 68, 0.5)' : 'none'
+                                               }}>
+                                                   <Calendar size={12}/> 
+                                                   {new Date(q.due_date).toLocaleDateString()}
+                                                   {new Date(q.due_date) < new Date() && " (Overdue)"}
+                                               </span>
+                                            )}
+                                            {q.repeat_rule && q.repeat_rule !== 'none' && (
+                                               <span style={{ padding: '2px 8px', borderRadius: '12px', background: 'rgba(139,92,246,0.2)', color: '#c4b5fd', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                   <Repeat size={12} /> {describeRepeatRule(q.repeat_rule)}
+                                               </span>
+                                            )}
+                                        </div>
+                                     </div>
+                                 </div>
+    
+                                 <div className="flex gap-2" style={{ alignItems: 'center', marginLeft: '1rem' }}>
+                                     {isExpanded ? <ChevronUp size={16} color="#64748b" /> : <ChevronDown size={16} color="#64748b" />}
+                                     <button
+                                        disabled={isBlocked}
+                                        onClick={(e) => { e.stopPropagation(); if(!isBlocked) setFocusTarget({ questId: q.id, questTitle: q.title }); }}
+                                        style={{ background: isBlocked ? '#334155' : realm?.accent_color, color: isBlocked ? '#94a3b8' : 'black', border: 'none', borderRadius: '10px', padding: '0.5rem 0.9rem', fontWeight: 'bold', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: isBlocked ? 'not-allowed' : 'pointer' }}
+                                     >
+                                        <Swords size={14} /> Begin Quest
+                                     </button>
+                                     <button onClick={(e) => { e.stopPropagation(); openModal(q); }} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><Edit2 size={18} /></button>
+                                     <button onClick={(e) => handleArchive(q.id, e)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Archive size={18} /></button>
                                  </div>
                              </div>
 
-                             <div className="flex gap-2" style={{ alignItems: 'center' }}>
-                                 <button
-                                    onClick={() => setFocusTarget({ questId: q.id, questTitle: q.title })}
-                                    style={{ background: realm?.accent_color, color: 'black', border: 'none', borderRadius: '10px', padding: '0.5rem 0.9rem', fontWeight: 'bold', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}
+                             {/* Expandable Body */}
+                             <AnimatePresence>
+                               {isExpanded && (
+                                 <motion.div
+                                   initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                                   style={{ overflow: 'hidden' }}
                                  >
-                                    <Swords size={14} /> Begin Quest
-                                 </button>
-                                 {q.due_date && (
-                                     <button 
-                                        onClick={() => handleAddToCalendar({ title: q.title, description: q.description, dueDate: q.due_date! })} 
-                                        title="Add to Google Calendar"
-                                        style={{ background: 'transparent', border: 'none', color: '#6366f1', cursor: 'pointer' }}>
-                                         <CalendarPlus size={18} />
-                                     </button>
-                                 )}
-                                 <button onClick={() => openModal(q)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><Edit2 size={18} /></button>
-                                 <button onClick={() => handleArchive(q.id)} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={18} /></button>
-                             </div>
-                         </div>
-                     </motion.div>
-                 ))}
+                                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '1rem 1.2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                       
+                                       {/* Subtasks (Checklist) */}
+                                       <div>
+                                           <h4 style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                               <CheckSquare size={12} /> Checklist
+                                           </h4>
+                                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                               {(q.checklist || []).map((item, i) => (
+                                                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                       <button 
+                                                          onClick={(e) => { e.stopPropagation(); toggleChecklistItem(q.id, i); }}
+                                                          style={{ width: '16px', height: '16px', borderRadius: '4px', border: `1px solid ${item.done ? realm?.accent_color : '#64748b'}`, background: item.done ? realm?.accent_color : 'transparent', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                       >
+                                                          {item.done && <Check size={12} />}
+                                                       </button>
+                                                       <span style={{ fontSize: '0.85rem', color: item.done ? '#64748b' : '#cbd5e1', textDecoration: item.done ? 'line-through' : 'none', flex: 1 }}>{item.text}</span>
+                                                       <button onClick={(e) => { e.stopPropagation(); removeChecklistItem(q.id, i); }} style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer', padding: 0 }}><X size={12}/></button>
+                                                   </div>
+                                               ))}
+                                               <input 
+                                                  type="text"
+                                                  className="form-input"
+                                                  placeholder="+ Add item (press Enter)"
+                                                  style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', border: '1px dashed rgba(255,255,255,0.1)' }}
+                                                  onKeyDown={(e) => addChecklistItem(q.id, e)}
+                                                  onClick={(e) => e.stopPropagation()}
+                                               />
+                                           </div>
+                                       </div>
+
+                                       <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.05)' }} />
+
+                                       {/* Notes */}
+                                       <div>
+                                           <h4 style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem', fontWeight: 'bold' }}>Notes</h4>
+                                           <textarea
+                                              className="form-input"
+                                              style={{ padding: '0.6rem', fontSize: '0.85rem', background: 'rgba(0,0,0,0.2)', minHeight: '80px' }}
+                                              placeholder="Jot down notes here..."
+                                              defaultValue={q.notes || ""}
+                                              onClick={(e) => e.stopPropagation()}
+                                              onBlur={(e) => {
+                                                  if (e.target.value !== q.notes) {
+                                                      updateQuestDetails(q.id, { notes: e.target.value });
+                                                  }
+                                              }}
+                                           />
+                                       </div>
+
+                                   </div>
+                                 </motion.div>
+                               )}
+                             </AnimatePresence>
+                         </motion.div>
+                     );
+                 })}
              </AnimatePresence>
 
              {completedQuests.length > 0 && (
@@ -452,7 +574,7 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                          {completedQuests.map(q => (
                              <div key={q.id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: `1px solid ${realm?.accent_color}30`, borderLeft: `3px solid ${realm?.accent_color}80`, borderRadius: '12px', padding: '0.9rem 1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                  <h3 className="line-through text-slate-300">{q.title}</h3>
-                                 <button onClick={() => handleArchive(q.id)} aria-label="Delete quest" style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                 <button onClick={(e) => handleArchive(q.id, e)} aria-label="Archive quest" style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer' }}><Archive size={16} /></button>
                              </div>
                          ))}
                      </div>
@@ -464,11 +586,11 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                 <motion.div initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
                 <motion.div 
                     initial={{opacity: 0, scale: 0.95, y: 20}} animate={{opacity: 1, scale: 1, y: 0}} exit={{opacity: 0, scale: 0.95, y: 20}}
-                    style={{ background: 'rgba(15,23,42,0.9)', border: `1px solid ${realm?.accent_color}`, borderRadius: '24px', padding: '2rem', width: '100%', maxWidth: '500px', position: 'relative', zIndex: 51, boxShadow: `0 25px 50px rgba(0,0,0,0.5), 0 0 40px ${realm?.accent_color}20` }}
+                    style={{ background: 'rgba(15,23,42,0.95)', border: `1px solid ${realm?.accent_color}`, borderRadius: '24px', padding: '2rem', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', zIndex: 61, boxShadow: `0 25px 50px rgba(0,0,0,0.5), 0 0 40px ${realm?.accent_color}20` }}
                 >
                     <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24}/></button>
                     <h2 className="text-2xl font-bold mb-6">{editingQuest ? 'Modify Intent' : 'Forge New Intent'}</h2>
@@ -501,6 +623,13 @@ export default function RealmPage({ params }: { params: Promise<{ slug: string }
                                     <option value="high">High Priority</option>
                                 </select>
                             </div>
+                        </div>
+                        <div className="form-group mb-0">
+                            <label className="form-label">Blocked By (Dependency)</label>
+                            <select className="form-input form-select" style={{paddingLeft: '1rem'}} value={blockedBy} onChange={e => setBlockedBy(e.target.value)}>
+                                <option value="">None</option>
+                                {activeQuests.map(q => q.id !== editingQuest?.id && <option key={q.id} value={q.id}>{q.title}</option>)}
+                            </select>
                         </div>
                         <div className="form-group mb-0">
                             <div className="flex justify-between items-center">

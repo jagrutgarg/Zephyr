@@ -50,7 +50,7 @@ const FogBlurShader = {
 };
 
 if (typeof window !== "undefined") {
-  useGLTF.setDecoderPath("/draco/");
+  useGLTF.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.5/");
   useGLTF.preload("/models/environment/aetheria_map.glb", true);
 }
 

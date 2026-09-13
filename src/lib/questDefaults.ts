@@ -14,6 +14,11 @@ export const PRIORITY_MAPPING: Record<Priority, { label: string; color: string; 
   low: { label: "Low", color: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", border: "rgba(148, 163, 184, 0.3)", rank: 1 },
 };
 
+export type ChecklistItem = {
+  text: string;
+  done: boolean;
+};
+
 // 'none' | 'daily' | 'weekly:mon,wed,fri'
 export type RepeatRule = string;
 
