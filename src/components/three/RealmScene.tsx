@@ -9,14 +9,16 @@ import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 import { EnvironmentBackground } from "./EnvironmentBackground";
 
+// timeless_realm.glb (~105MB) and celestial_kingdom.glb (~119MB) are
+// deliberately NOT listed here — adding an unverified 100MB+ asset to a
+// live scene has blanked the World Map twice already (see RealmTowers.tsx).
+// Until they're Draco/meshopt-compressed and actually confirmed to load
+// without exhausting GPU memory, those two Realms fall through to no
+// centerpiece rather than risk it.
 const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number]; exposure?: number }> = {
   astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 2.0, position: [0, -1.8, 0], exposure: 0.6 },
   enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 0.4, position: [0, -1.8, 0], exposure: 0.6 },
   xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 0.18, position: [0, -1.8, 0], exposure: 0.6 },
-  // The two heaviest source models (~100MB+) — unverified in this scene.
-  // If the focus scene goes blank on these Realms, remove the entry here.
-  timeless_realm: { path: "/models/realms/timeless_realm.glb", scale: 0.05, position: [0, -1.8, 0], exposure: 0.5 },
-  celestial_kingdom: { path: "/models/realms/celestial_kingdom.glb", scale: 0.05, position: [0, -1.8, 0], exposure: 0.5 },
 };
 
 /**
