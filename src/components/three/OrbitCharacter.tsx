@@ -33,7 +33,7 @@ function CharacterVisual() {
   return (
     <ModelErrorBoundary fallback={<PrimitiveCharacter />}>
       <Suspense fallback={<PrimitiveCharacter />}>
-        <GltfModel path={CHARACTER_MODEL_PATH} scale={0.22} />
+        <GltfModel path={CHARACTER_MODEL_PATH} scale={0.12} exposure={0.6} />
       </Suspense>
     </ModelErrorBoundary>
   );
@@ -45,12 +45,12 @@ function CharacterVisual() {
  * stays correct regardless of frame rate or tab throttling catch-up.
  */
 export function OrbitCharacter({
-  radius,
+  radius = 2.1,
   startTs,
   durationMs,
   onComplete,
 }: {
-  radius: number;
+  radius?: number;
   startTs: number;
   durationMs: number;
   onComplete: () => void;
@@ -67,7 +67,7 @@ export function OrbitCharacter({
     const z = Math.sin(angle) * radius;
 
     if (groupRef.current) {
-      groupRef.current.position.set(x, -0.9, z);
+      groupRef.current.position.set(x, -1.25, z);
       groupRef.current.rotation.y = -angle + Math.PI;
     }
 

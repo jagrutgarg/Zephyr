@@ -27,10 +27,10 @@ function PrimitiveCenterpiece({ color, celebrating }: { color: string; celebrati
   );
 }
 
-const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number] }> = {
-  astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 1 },
-  enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 0.1, position: [0, -0.5, 0] },
-  xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 0.05, position: [0, -0.8, 0] },
+const KNOWN_REALM_MODELS: Record<string, { path: string; scale?: number; position?: [number, number, number]; exposure?: number }> = {
+  astral_library: { path: "/models/realms/astral_library_lowpoly_backup.glb", scale: 2.0, position: [0, -1.8, 0], exposure: 0.6 },
+  enchanted_woods: { path: "/models/environment/enchanted_woods_island.glb", scale: 0.4, position: [0, -1.8, 0], exposure: 0.6 },
+  xyran_frontier: { path: "/models/realms/xyran_frontier.glb", scale: 0.18, position: [0, -1.8, 0], exposure: 0.6 },
 };
 
 /**
@@ -45,7 +45,7 @@ function Centerpiece({ realmSlug, color, celebrating }: { realmSlug: string; col
       {modelInfo ? (
         <ModelErrorBoundary fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
           <Suspense fallback={<PrimitiveCenterpiece color={color} celebrating={celebrating} />}>
-            <GltfModel path={modelInfo.path} scale={modelInfo.scale} position={modelInfo.position} />
+            <GltfModel path={modelInfo.path} scale={modelInfo.scale} position={modelInfo.position} exposure={modelInfo.exposure ?? 0.6} />
           </Suspense>
         </ModelErrorBoundary>
       ) : (
@@ -59,7 +59,7 @@ function Centerpiece({ realmSlug, color, celebrating }: { realmSlug: string; col
 export function RealmScene({
   realmSlug,
   themeColor,
-  orbitRadius = 2.6,
+  orbitRadius = 2.1,
   startTs,
   durationMs,
   onOrbitComplete,
@@ -76,14 +76,17 @@ export function RealmScene({
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 3.5, 6], fov: 45 }}
+      gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.5 }}
+      camera={{ position: [0, 4.0, 7.0], fov: 45 }}
       style={{ width: "100%", height: "100%" }}
     >
       <color attach="background" args={["#020617"]} />
-      <fog attach="fog" args={["#020617", 6, 16]} />
-      <ambientLight intensity={0.4} />
-      <pointLight position={[4, 5, 4]} intensity={60} color={themeColor} castShadow />
-      <pointLight position={[-4, 2, -3]} intensity={20} color="#ffffff" />
+      <fog attach="fog" args={["#020617", 8, 22]} />
+      
+      {/* Dim, rich, non-overexposed lighting */}
+      <ambientLight intensity={0.35} />
+      <directionalLight position={[6, 12, 6]} intensity={0.7} color="#ffffff" castShadow />
+      <pointLight position={[-4, 3, -3]} intensity={0.3} color={themeColor} />
 
       <EnvironmentBackground />
 
@@ -91,20 +94,20 @@ export function RealmScene({
 
       <OrbitCharacter radius={orbitRadius} startTs={startTs} durationMs={durationMs} onComplete={onOrbitComplete} />
 
-      {/* ground disc */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-        <circleGeometry args={[4.5, 48]} />
-        <meshStandardMaterial color="#0f172a" roughness={0.8} />
+      {/* Ground void disc */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.85, 0]} receiveShadow>
+        <circleGeometry args={[6, 48]} />
+        <meshStandardMaterial color="#050a17" roughness={0.95} />
       </mesh>
 
-      {/* Free look: drag to rotate, scroll/pinch to zoom, right-click/two-finger drag to pan */}
+      {/* Free look: drag to rotate, scroll/pinch to zoom */}
       <OrbitControls
         makeDefault
         enableDamping
         dampingFactor={0.08}
-        target={[0, 0, 0]}
+        target={[0, -0.3, 0]}
         minDistance={2.5}
-        maxDistance={12}
+        maxDistance={14}
         minPolarAngle={0.15}
         maxPolarAngle={Math.PI / 2 - 0.05}
       />
