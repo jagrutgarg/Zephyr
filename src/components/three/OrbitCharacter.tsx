@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { GltfModel } from "./GltfModel";
 import { ModelErrorBoundary } from "./ModelErrorBoundary";
 
-const CHARACTER_MODEL_PATH = "/models/characters/chibi_blindbox_girl.glb";
+const CHARACTER_MODEL_PATH = "/models/characters/ff_female_character.glb";
 
 function PrimitiveCharacter() {
   return (
@@ -26,7 +26,7 @@ function PrimitiveCharacter() {
 }
 
 /**
- * Renders /models/characters/chibi_blindbox_girl.glb if present, otherwise
+ * Renders /models/characters/ff_female_character.glb if present, otherwise
  * the placeholder primitive body.
  */
 function CharacterVisual() {
